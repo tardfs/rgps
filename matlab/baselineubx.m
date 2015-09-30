@@ -3,8 +3,8 @@ easyLib = getFullPath('..\\easy') ;
 
 clc ;
 fout = fopen('rltv_out.txt','w+t') ;
-recv1File = '..\data\RS_twin01_01.mat' ;
-recv2File = '..\data\RS_twin01_02.mat' ;
+recv1File = '..\data\RS_twin11_01.mat' ;
+recv2File = '..\data\RS_twin11_02.mat' ;
 outFile = '..\data\rltv_out.mat' ;
 load(recv1File) ;
 recv1_measurments = measurments_queue ;

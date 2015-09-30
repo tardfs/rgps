@@ -9,8 +9,8 @@ ubxEcefCount = 0 ;
 ubxEcef = zeros(1000,4) ;
 clc ;
 % clear all ;
-outFile = '..\data\RS_twin10_02.mat' ;
-f = fopen('..\data\RS_twin10_02.bin','r') ; % ..\data\rs_004.bin
+outFile = '..\data\RS_twin12_01.mat' ;
+f = fopen('..\data\RS_twin12_01.bin','r') ; % ..\data\rs_004.bin
 fout = fopen('ubx_out.txt','w+t') ;
 n_show=0 ;
 n_eph_t = 0 ;
