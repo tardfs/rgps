@@ -1,16 +1,22 @@
 function ubxdump()
 
+% TOW - epoch counter, epoch length=6sec
+% all TOW fields in sec!!!
+
 gnssLib = getFullPath('..\\softgnss') ;
 addpath(gnssLib) ;
 
 sattelites = {} ;
+measurments_count = 0 ;
 measurments_queue = {} ;
 ubxEcefCount = 0 ;
-ubxEcef = zeros(1000,4) ;
+ubxEcef = zeros(5,1000) ;
+ubxGeodeticCount = 0 ;
+ubxGeodetic = zeros(5,1000) ;
 clc ;
 % clear all ;
-outFile = '..\data\RS_twin12_02.mat' ;
-f = fopen('..\data\RS_twin12_02.bin','r') ; % ..\data\rs_004.bin
+outFile = '..\data\RS_twin11_01.mat' ;
+f = fopen('..\data\RS_twin11_01.bin','r') ; % ..\data\rs_004.bin
 fout = fopen('ubx_out.txt','w+t') ;
 n_show=0 ;
 n_eph_t = 0 ;
@@ -25,7 +31,7 @@ if f~=-1
         %    break ;
         %end
         if ftell(f)>n_show
-            fprintf(repmat('\b',1,80)) ; fprintf( '<FILE POS>%07d <EPH:>%7d <MEASURMENT:>%7d', n_show, n_eph_t, n_measurment_t ) ;
+            fprintf(repmat('\b',1,160)) ; fprintf( '<FILE POS>%07d <RAW MEASURMENT_t:>%10.3f <RAW MEASURMENTS COLLECTED:>%4d <UBX_ECEF:>%4d <UBX_GEODETIC:>%4d', n_show, n_measurment_t, measurments_count, ubxEcefCount, ubxGeodeticCount ) ;
             n_show = n_show+10000 ;
         end
         % Read sync char 1        
@@ -107,7 +113,7 @@ if f~=-1
                                 fprintf(fout,'\t<NAV-POSECEF> Position Solution in ECEF\n') ;
                                 field_off = ftell(f)-poff ;
                                 iTOW = fread(f,1,'uint32') ;
-                                fprintf(fout,'\t\t[%3d]<iTOW> %d\n', field_off, iTOW ) ;
+                                fprintf(fout,'\t\t[%3d]<iTOW> %d ms\n', field_off, iTOW ) ;
                                 field_off = ftell(f)-poff ;
                                 ecefX = fread(f,1,'int32') ;
                                 fprintf(fout,'\t\t[%3d]<ecefX> cm %d\n', field_off, ecefX ) ;
@@ -121,7 +127,14 @@ if f~=-1
                                 pAcc = fread(f,1,'uint32') ;
                                 fprintf(fout,'\t\t[%3d]<pAcc> cm %d\n', field_off, pAcc ) ;
                                 ubxEcefCount = ubxEcefCount+1 ;
-                                ubxEcef(ubxEcefCount,:) = [ecefX, ecefY, ecefZ, pAcc ] ;
+                                ubxEcef(:,ubxEcefCount) = [ iTOW*1e-3; ... % convert to sec
+                                                            ecefX/100; ... % convert to m
+                                                            ecefY/100; ...
+                                                            ecefZ/100; ...
+                                                            pAcc/100 ] ;
+                            case 2                                
+                                fprintf(fout,'\t<UBX-NAV-POSLLH> Geodetic Position Solution\n') ;
+                                ubxGeodeticCount = ubxGeodeticCount + 1 ;
                         end
                     elseif msg_class==2
                         switch msg_id
@@ -261,7 +274,7 @@ if f~=-1
                                 field_off = ftell(f)-poff ;
                                 rcvTow = fread(f,1,'double') ;
                                 fprintf(fout,'\t\t[%3d]<rcvTow> %f seconds\n', field_off, rcvTow ) ;
-                                n_eph_t = rcvTow ;
+                                n_measurment_t = rcvTow ;
                                 field_off = ftell(f)-poff ;
                                 gpsWeek = fread(f,1,'uint16') ;
                                 fprintf(fout,'\t\t[%3d]<week> %d\n', field_off, gpsWeek ) ;
@@ -356,8 +369,9 @@ if f~=-1
                                         end
                                     end
                                 end
-                                if length(instant_measurments)>=4
+                                if length(instant_measurments)>=4                                    
                                     pvt_solver(fout,instant_measurments,4) ; % standart PVT solver
+                                    measurments_count = measurments_count + 1 ;
                                     measurments_queue{end+1} = instant_measurments ;
                                 end
                         end
@@ -394,12 +408,14 @@ if f~=-1
     fprintf(fout, 'Maximum packet size (CRC Ok): %d bytes\n', longest_crc_ok ) ;
     fclose(f) ;
     dump_sattelites(fout,sattelites) ;
+    fprintf('\n') ;
 else
     fprintf(fout,'ubxdump error: Can''t open input file.\n') ;
     if fout~=1
         fprintf('ubxdump error: Can''t open input file.\n') ;
     end
 end
+ubxEcef = ubxEcef(:,1:ubxEcefCount) ;
 save(outFile,'measurments_queue','ubxEcef','ubxEcefCount') ;
 fclose(fout) ;
 rmpath(gnssLib) ;
