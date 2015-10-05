@@ -15,8 +15,8 @@ ubxGeodeticCount = 0 ;
 ubxGeodetic = zeros(5,1000) ;
 clc ;
 % clear all ;
-outFile = '..\data\RS_twin11_01.mat' ;
-f = fopen('..\data\RS_twin11_01.bin','r') ; % ..\data\rs_004.bin
+outFile = '..\data\RS_twin_15mm_02.mat' ;
+f = fopen('..\data\RS_twin_15mm_02.bin','r') ; % ..\data\rs_004.bin
 fout = fopen('ubx_out.txt','w+t') ;
 n_show=0 ;
 n_eph_t = 0 ;
@@ -135,6 +135,21 @@ if f~=-1
                             case 2                                
                                 fprintf(fout,'\t<UBX-NAV-POSLLH> Geodetic Position Solution\n') ;
                                 ubxGeodeticCount = ubxGeodeticCount + 1 ;
+                                field_off = ftell(f)-poff ;
+                                iTOW = fread(f,1,'uint32') ;
+                                fprintf(fout,'\t\t[%3d]<iTOW> %d ms\n', field_off, iTOW ) ;
+                                field_off = ftell(f)-poff ;
+                                lon = fread(f,1,'int32')*1e-7 ;
+                                fprintf(fout,'\t\t[%3d]<long> %5.3f\n', field_off, lon ) ;
+                                field_off = ftell(f)-poff ;
+                                lat = fread(f,1,'int32')*1e-7 ;
+                                fprintf(fout,'\t\t[%3d]<lat>  %5.3f\n', field_off, lat ) ;
+                                field_off = ftell(f)-poff ;
+                                height = fread(f,1,'int32')/100 ;
+                                fprintf(fout,'\t\t[%3d]<height>  %4 m\n', field_off, height ) ;
+                                field_off = ftell(f)-poff ;
+                                height = fread(f,1,'int32')/100 ;
+                                fprintf(fout,'\t\t[%3d]<height>  %4 m\n', field_off, height ) ;
                         end
                     elseif msg_class==2
                         switch msg_id
