@@ -12,11 +12,11 @@ measurments_queue = {} ;
 ubxEcefCount = 0 ;
 ubxEcef = zeros(5,1000) ;
 ubxGeodeticCount = 0 ;
-ubxGeodetic = zeros(5,1000) ;
+ubxGeodetic = zeros(7,1000) ;
 clc ;
 % clear all ;
-outFile = '..\data\RS_twin_15mm_02.mat' ;
-f = fopen('..\data\RS_twin_15mm_02.bin','r') ; % ..\data\rs_004.bin
+outFile = '..\data\RS_twin_30mm_01.mat' ;
+f = fopen('..\data\RS_twin_30mm_01.bin','r') ; % ..\data\rs_004.bin
 fout = fopen('ubx_out.txt','w+t') ;
 n_show=0 ;
 n_eph_t = 0 ;
@@ -143,13 +143,26 @@ if f~=-1
                                 fprintf(fout,'\t\t[%3d]<long> %5.3f\n', field_off, lon ) ;
                                 field_off = ftell(f)-poff ;
                                 lat = fread(f,1,'int32')*1e-7 ;
-                                fprintf(fout,'\t\t[%3d]<lat>  %5.3f\n', field_off, lat ) ;
+                                fprintf(fout,'\t\t[%3d]<lat><long>  %7.5f,%7.5f\n', field_off, lat, lon ) ;
                                 field_off = ftell(f)-poff ;
                                 height = fread(f,1,'int32')/100 ;
-                                fprintf(fout,'\t\t[%3d]<height>  %4 m\n', field_off, height ) ;
+                                fprintf(fout,'\t\t[%3d]<height>  %f m\n', field_off, height ) ;
                                 field_off = ftell(f)-poff ;
-                                height = fread(f,1,'int32')/100 ;
-                                fprintf(fout,'\t\t[%3d]<height>  %4 m\n', field_off, height ) ;
+                                hMSL = fread(f,1,'int32')/100 ;
+                                fprintf(fout,'\t\t[%3d]<hMSL>  %f m\n', field_off, hMSL ) ;
+                                field_off = ftell(f)-poff ;
+                                hAcc = fread(f,1,'uint32')/100 ;
+                                fprintf(fout,'\t\t[%3d]<hAcc>  %f m\n', field_off, hAcc ) ;
+                                field_off = ftell(f)-poff ;
+                                vAcc = fread(f,1,'uint32')/100 ;
+                                fprintf(fout,'\t\t[%3d]<vAcc>  %f m\n', field_off, vAcc ) ;
+                                
+                                ubxGeodetic(:,ubxGeodeticCount) = [ iTOW; ...
+                                                                    lat; lon ; ...
+                                                                    height; ...
+                                                                    hMSL; ...
+                                                                    hAcc; ...
+                                                                    vAcc ] ;
                         end
                     elseif msg_class==2
                         switch msg_id
@@ -431,7 +444,8 @@ else
     end
 end
 ubxEcef = ubxEcef(:,1:ubxEcefCount) ;
-save(outFile,'measurments_queue','ubxEcef','ubxEcefCount') ;
+ubxGeodetic = ubxGeodetic(:,1:ubxGeodeticCount) ;
+save(outFile,'measurments_queue','ubxEcef','ubxEcefCount', 'ubxGeodetic', 'ubxGeodeticCount') ;
 fclose(fout) ;
 rmpath(gnssLib) ;
 
@@ -855,7 +869,7 @@ function pvt_solver(fout,measurments_queue,numSat)
         satpos(1,n) = measurments_queue{m_index}.sat_x ;
         satpos(2,n) = measurments_queue{m_index}.sat_y ;
         satpos(3,n) = measurments_queue{m_index}.sat_z ;
-        obs(n) = measurments_queue{m_index}.prMes ;
+        obs(n) = measurments_queue{m_index}.prMes + measurments_queue{n}.sat_clk_corr*299792458 ;
         sat_list(end+1) = measurments_queue{m_index}.svId ;
     end
     

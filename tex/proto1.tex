@@ -1,0 +1,109 @@
+\documentclass[a4paper]{article}
+%\documentclass[twocolumn,a4paper]{proc}
+\usepackage[T2A]{fontenc}
+\usepackage[cp1251]{inputenc}
+\usepackage[russian]{babel}
+%\usepackage[cmex10]{amsmath}
+%\usepackage{amsfonts}
+\usepackage[pdftex]{graphicx}
+%\usepackage[usenames, dvipsnames]{color}
+%\definecolor{attcolor}{rgb}{0.2,0.9,0.9}
+%\definecolor{themecolor}{rgb}{0.9,0.5,0.5}
+%\usepackage{epstopdf}
+\usepackage{pscyr}
+%\usepackage{times}
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+\usepackage{hyperref} 
+%\renewcommand{\rmdefault}{fjn}
+\setlength{\textwidth}{170mm}
+\setlength{\textheight}{240mm}
+\voffset=-20mm
+\hoffset=-20mm
+
+\begin{document}
+%\maketitle
+
+\section{Измерения с помощью одного приемника - RS-twin-15mm-01}
+
+\begin{verbatim}
+<RAW MEASURMENTS COLLECTED:> 228
+<UBX_ECEF:> 1308
+<UBX GEODETIC:> 1308
+\end{verbatim}
+
+Условные названия алгоритмов: 
+\begin{itemize}
+\item ubx - это измерения полученные с помощью приемника (собственный алгортм приемника) - на карте изображен зелеными метками
+\item gnss - стандартный LS метод решения навигационной задачи - на карте голубой
+\item easy - метод решения навигационной задачи при котором на каждой итерации уточняется время и пересчитывается позиция всех спутников - на карте изображен красным цветом 
+\end{itemize}
+
+
+\begin{figure}[h]
+%\centering
+\includegraphics{map1.png}
+\caption{Измерения ubx(зеленый), easy(красный) и gnss(голубой), измерения приведены не полностью!}
+\end{figure}
+
+Алгоритм gnss имеет смещение, природа этого смещения пока мне не ясна - разбираться сейчас в этом я не вижу особого смысла. 
+Отличие ubx от easy я на данный момент вижу в том что:
+
+\begin {enumerate}
+\item ubx использует больше спутников за счет GLONASS
+\item ubx наверняка выбирает лучшие спутники учитывая их углы азимута и элевации - у меня в тукущей реализации этого нет.
+\item ubx использует фильтрацию, которая при неподвижном приемнике очень сильно подавляет разброс. Остается неясным,
+почему easy координаты после осреднения не стремятся к ubx координатам. В случае полнотью неподвижного приемника идеальный
+фильтр - это осреднение.
+\end{enumerate}
+
+\begin{figure}[h]
+%\centering
+\includegraphics{map2.png}
+\caption{Средние значения координат ubx(зеленый), easy(красный) и gnss(голубой)}
+\end{figure}
+
+\section{Измерения с помощью одного приемника - RS-twin-15mm-02}
+
+\begin{verbatim}
+<RAW MEASURMENTS COLLECTED:>1155 
+<UBX_ECEF:>1308 
+<UBX_GEODETIC:>1308
+\end{verbatim}
+
+\begin{figure}[h]
+%\centering
+\includegraphics{map3.png}
+\caption{Измерения ubx(зеленый), easy(красный) и gnss(голубой), измерения приведены не полностью!}
+\end{figure}
+
+\begin{figure}[h]
+%\centering
+\includegraphics{map4.png}
+\caption{Средние значения координат ubx(зеленый), easy(красный) и gnss(голубой)}
+\end{figure}
+
+Здесь видно что при большом количестве измерений результаты алгоритма easy становятся близки к ubx.
+
+\section{Измерения с помощью одного приемника - RS-twin-30mm-01}
+
+\begin{verbatim}
+<RAW MEASURMENTS COLLECTED:>1093 
+<UBX_ECEF:>1128 
+<UBX_GEODETIC:>1128
+\end{verbatim}
+
+\begin{figure}[h]
+%\centering
+\includegraphics{map5.png}
+\caption{Измерения ubx(зеленый), easy(красный) и gnss(голубой), измерения приведены не полностью!}
+\end{figure}
+
+\begin{figure}[h]
+%\centering
+\includegraphics{map6.png}
+\caption{Средние значения координат ubx(зеленый), easy(красный) и gnss(голубой)}
+\end{figure}
+\end{document}
+
+К сожалению отобразить все измерения сложно, поэтому результаты осреднения кажутся странными
