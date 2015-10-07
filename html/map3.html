@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JavaScript API Яндекс.Карт 2.1</title>
+<!-- Подключаем API  карт 2.x  -->
+<script src="http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU" type="text/javascript"></script>
+<script type="text/javascript">
+ymaps.ready(init);
+function init () 
+{
+	var myMap = new ymaps.Map('map', {
+                   center: [55.847711, 36.217066],
+                    zoom: 13
+                }) ;
+
+	myMap.geoObjects.add(new ymaps.Placemark([55.847711, 36.217066],{}, {preset: 'islands#blueIcon'}) ) ; 
+ 
+}
+
+</script>
+</head>
+ 
+<body>
+<div id="map" style="width:600px; height:400px"></div>
+</body>
+</html>
