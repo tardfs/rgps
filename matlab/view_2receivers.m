@@ -1,163 +1,134 @@
 function view_2receivers()
 clc ;
-easyLib = getFullPath('..\\easy') ;
 
 fout = fopen('receiver_out.txt','w+t') ;
+htmlFile = 'RS_twin_15mm_01.html'
 recv1File = '..\data\RS_twin_15mm_01.mat' ;
 recv2File = '..\data\RS_twin_15mm_02.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
 load(recv1File) ;
 recv1_measurments = measurments_queue ;
-ubxEcefA = ubxEcef ;
-ubxGeodeticA = ubxGeodetic ;
+ubx_ecef_A = ubxEcef ;
+ubx_geodetic_A = ubxGeodetic ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver B data...') ;
 load(recv2File) ;
 recv2_measurments = measurments_queue ;
-ubxEcefB = ubxEcef ;
-ubxGeodeticB = ubxGeodetic ;
+ubx_ecef_B = ubxEcef ;
+ubx_geodetic_B = ubxGeodetic ;
+fprintf(repmat('\b',1,160)) ;
+fprintf('\n') ;
 
-% Prepare navigation data
-N = length(recv1_measurments) ;
-
-% get averaged ubx
-ubx_mA = mean(ubxEcefA(2:4,:),2) ;
-% map to geoid
-addpath(easyLib) ;
-[ubx_mA_phi,ubx_mA_lambda] = togeod(6378137,298.257223563,ubx_mA(1),ubx_mA(2),ubx_mA(3)) ;
-rmpath(easyLib) ;
-
-% get averaged ubx B
-ubx_mB = mean(ubxEcefB(2:4,:),2) ;
-% map to geoid
-addpath(easyLib) ;
-[ubx_mB_phi,ubx_mB_lambda] = togeod(6378137,298.257223563,ubx_mB(1),ubx_mB(2),ubx_mB(3)) ;
-rmpath(easyLib) ;
+%get A data
+gnss_ecef_A = nlib_gnss_ecef_solver(recv1_measurments) ;
+easy_ecef_A = nlib_easy_ecef_solver(recv1_measurments) ;
+% averaging poistion
+ubx_ecef_mA = nlib_mean_ecef(ubx_ecef_A) ;
+gnss_ecef_mA = nlib_mean_ecef(gnss_ecef_A) ;
+easy_ecef_mA = nlib_mean_ecef(easy_ecef_A) ;
+% geodetic position
+ubx_geodetic_mA = nlib_ecef2geodetic(ubx_ecef_mA) ;
+gnss_geodetic_A = nlib_ecef2geodetic(gnss_ecef_A) ;
+easy_geodetic_A = nlib_ecef2geodetic(easy_ecef_A) ;
+gnss_geodetic_mA = nlib_ecef2geodetic(gnss_ecef_mA) ;
+easy_geodetic_mA = nlib_ecef2geodetic(easy_ecef_mA) ;
 
 
-% compute position using different methods
-for idx1=1:N
-    recv1_msr_set = recv1_measurments{idx1} ;
-    [ux,uy,uz,gdop] = gnss_pvt_solver( fout, recv1_msr_set) ;
-    gnssApos(:,idx1) = [recv1_msr_set{1}.msrTow; ux;uy;uz; gdop(1)] ;
-    [ux,uy,uz,gdop] = easy_pvt_solver( fout, recv1_msr_set) ;
-    easyApos(:,idx1) = [recv1_msr_set{1}.msrTow; ux;uy;uz; gdop] ;
+%get B data
+gnss_ecef_B = nlib_gnss_ecef_solver(recv2_measurments) ;
+easy_ecef_B = nlib_easy_ecef_solver(recv2_measurments) ;
+% averaging poistion
+ubx_ecef_mB = nlib_mean_ecef(ubx_ecef_B) ;
+gnss_ecef_mB = nlib_mean_ecef(gnss_ecef_B) ;
+easy_ecef_mB = nlib_mean_ecef(easy_ecef_B) ;
+% geodetic position
+ubx_geodetic_mB = nlib_ecef2geodetic(ubx_ecef_mB) ;
+gnss_geodetic_B = nlib_ecef2geodetic(gnss_ecef_B) ;
+easy_geodetic_B = nlib_ecef2geodetic(easy_ecef_B) ;
+gnss_geodetic_mB = nlib_ecef2geodetic(gnss_ecef_mB) ;
+easy_geodetic_mB = nlib_ecef2geodetic(easy_ecef_mB) ;
+
+
+% baseline
+ubx_baseline_m = ubx_ecef_mB - ubx_ecef_mA ;
+gnss_baseline_m = gnss_ecef_mB - gnss_ecef_mA ;
+easy_baseline_m = easy_ecef_mB - easy_ecef_mA ;
+prng_baseline = nlib_pseudorange_baseline_solver( easy_ecef_mA, recv1_measurments, recv2_measurments ) ;
+prng_baseline_m = nlib_mean_ecef( prng_baseline ) ;
+ubx_baseline = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
+easy_baseline = nlib_coarse_baseline_solver(easy_ecef_A, easy_ecef_B) ;
+
+% make js script
+fjs = fopen(htmlFile,'w+t') ;
+fprintf(fjs,  '<!DOCTYPE html>\n' ) ;
+fprintf(fjs,  '<html><head><title>UBX</title>\n' ) ;
+fprintf(fjs,  '<script src="http://api-maps.yandex.ru/2.1/?load=package.full&lang=ru-RU" type="text/javascript"></script>\n' ) ;
+fprintf(fjs,  '<script type="text/javascript">\n' ) ;
+fprintf(fjs, 'ymaps.ready(init) ;\n' ) ;
+fprintf(fjs,  'function init()\n{\n' ) ;
+fprintf(fjs,  'var myMap = new ymaps.Map(''map'', {\n' ) ;
+fprintf(fjs,  'center: [%10.7f, %10.7f],\n zoom: 15}) ;\n', ubx_geodetic_mA(2), ubx_geodetic_mA(3) ) ;
+fprintf(fjs,  '\n' ) ;
+
+if 0
+for n=1:10
+   fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#darkGreenIcon''}) ) ;\n', ubx_geodetic_A(2,n), ubx_geodetic_A(3,n) ) ;
+end
+for n=1:10
+   fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:2}, {preset: ''islands#darkGreenIcon''}) ) ;\n', ubx_geodetic_B(2,n), ubx_geodetic_B(3,n) ) ;
+end
 end
 
-% get averaged gnss
-gnss_mA = mean(gnssApos(2:4,:),2) ;
-% map to geoid
-addpath(easyLib) ;
-[gnss_mA_phi,gnss_mA_lambda,gnss_mA_h] = togeod(6378137,298.257223563,gnss_mA(1),gnss_mA(2),gnss_mA(3)) ;
-rmpath(easyLib) ;
-
-
-
-% get averaged easy
-easy_mA = mean(easyApos(2:4,:),2) ;
-% map to geoid
-addpath(easyLib) ;
-[easy_mA_phi,easy_mA_lambda,easy_mA_h] = togeod(6378137,298.257223563,easy_mA(1),easy_mA(2),easy_mA(3)) ;
-rmpath(easyLib) ;
-
-
-gnssGeodeticA = zeros(2,N) ;
-easyGeodeticA = zeros(2,N) ;
-addpath(easyLib) ;
-for idx1=1:min(N,30)
-    [gnssGeodeticA(1,idx1), gnssGeodeticA(2,idx1)] = togeod(6378137,298.257223563, gnssApos(2,idx1),gnssApos(3,idx1),gnssApos(4,idx1) ) ;
-    [easyGeodeticA(1,idx1), easyGeodeticA(2,idx1)] = togeod(6378137,298.257223563, easyApos(2,idx1),easyApos(3,idx1),easyApos(4,idx1) ) ;
+if 1
+for n=1:10
+   fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_A(2,n), easy_geodetic_A(3,n) ) ;
 end
-rmpath(easyLib) ;
-
-
-fprintf(fout,'https://static-maps.yandex.ru/1.x/?ll=%8.6f,%8.6f&size=450,450&z=16&l=map', ubx_mA_lambda,ubx_mA_phi ) ;
-fprintf(fout,'&pt=%8.6f,%8.6f,pmgns1', ubxGeodeticA(3,1),ubxGeodeticA(2,1) ) ;    
-
-for n=1:min(N,30)
-    fprintf(fout,'~%8.6f,%8.6f,pmrds', easyGeodeticA(2,n),easyGeodeticA(1,n) ) ;
+for n=1:10
+   fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:2}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_B(2,n), easy_geodetic_B(3,n) ) ;
+end
 end
 
-for n=1:min(N,30)
-    fprintf(fout,'~%8.6f,%8.6f,pmlbs', gnssGeodeticA(2,n),gnssGeodeticA(1,n) ) ;
+
+if 0
+for n=1:size(easy_geodetic_A,2)
+    fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_A(2,n), easy_geodetic_A(3,n) ) ;    
+end
 end
 
-for n=1:min(N,30)
-    fprintf(fout,'~%8.6f,%8.6f,pmgns', ubxGeodeticA(3,n),ubxGeodeticA(2,n) ) ;
+% mean positions
+if 0
+fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#darkGreenIcon''}) ) ;\n', ubx_geodetic_mA(2), ubx_geodetic_mA(3) ) ;
+fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_mA(2), easy_geodetic_mA(3) ) ;
+fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#darkBlueIcon''}) ) ;\n', gnss_geodetic_mA(2), gnss_geodetic_mA(3) ) ;
+
+fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:2}, {preset: ''islands#darkGreenIcon''}) ) ;\n', ubx_geodetic_mB(2), ubx_geodetic_mB(3) ) ;
+fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:2}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_mB(2), easy_geodetic_mB(3) ) ;
+fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:2}, {preset: ''islands#darkBlueIcon''}) ) ;\n', gnss_geodetic_mB(2), gnss_geodetic_mB(3) ) ;
 end
 
-fprintf(fout,'\n\n') ;
+fprintf(fjs,  '\n' ) ;
+fprintf(fjs,  '}\n' ) ;
+fprintf(fjs,  '</script></head>\n' ) ;
+fprintf(fjs,  '<body>\n' ) ;
+fprintf(fjs,  '<div id="map" style="width:700px; height:500px"></div>\n' ) ;
+fprintf(fjs,  '</body>\n' ) ;
+fprintf(fjs,  '</html>\n' ) ;
+fprintf(fjs,  '\n' ) ;
+fclose(fjs) ;
 
-fprintf(fout,'https://static-maps.yandex.ru/1.x/?ll=%8.6f,%8.6f&size=450,450&z=16&l=map', ubx_mA_lambda,ubx_mA_phi ) ;
-fprintf(fout,'&pt=%8.6f,%8.6f,pmgnm1', ubx_mA_lambda,ubx_mA_phi ) ;
-fprintf(fout,'~%8.6f,%8.6f,pmrdm2', easy_mA_lambda,easy_mA_phi ) ;
-fprintf(fout,'~%8.6f,%8.6f,pmlbm3', gnss_mA_lambda,gnss_mA_phi ) ;
+% plot data
+fprintf('\n') ;
+fprintf('<ubx_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', ubx_baseline_m(2),ubx_baseline_m(3), ubx_baseline_m(4), norm(ubx_baseline_m(2:4) )) ;
+fprintf('<gnss_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', gnss_baseline_m(2),gnss_baseline_m(3), gnss_baseline_m(4), norm(gnss_baseline_m(2:4) )) ;
+fprintf('<easy_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', easy_baseline_m(2),easy_baseline_m(3), easy_baseline_m(4), norm(easy_baseline_m(2:4) )) ;
+fprintf('<prng_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', prng_baseline_m(2),prng_baseline_m(3),prng_baseline_m(4), norm(prng_baseline_m(2:4) )) ;
+
+hold off ;
+plot((prng_baseline(1,:)-prng_baseline(1,1))/60,nlib_ecef_norm2(prng_baseline),'Color',[0.2 0.9 0.2],'LineWidth',2) ;
+hold on ;
+plot((ubx_baseline(1,:)-ubx_baseline(1,1))/60,nlib_ecef_norm2(ubx_baseline),'Color',[0 0.9 0.2],'LineWidth',2) ;
+hold on ;
+plot((easy_baseline(1,:)-easy_baseline(1,1))/60,nlib_ecef_norm2(easy_baseline),'Color',[0.9 0.0 0.2],'LineWidth',2) ;
 
 
 fclose(fout) ;
-fprintf('\n') ;
-
-function [ux,uy,uz,gdop, phi,lambda,h, el,az ] = gnss_pvt_solver( fout, measurments_queue)
-    gnssLib = getFullPath('..\\softgnss') ;
-    addpath(gnssLib) ;
-    
-    numSat = length(measurments_queue) ;
-    satpos = zeros(3,numSat) ;
-    obs = zeros(numSat,1) ;
-    
-    %sat_list = [] ;
-    %gnssId = 0 ;
-    %n = 0 ;
-    fprintf(fout, '<GNSS PVT SOLVER SAT LIST>\n') ;
-    %while length(sat_list)<numSat
-    for n=1:length(measurments_queue)
-        fprintf(fout, '\t<svId>%2d', measurments_queue{n}.svId ) ;
-        fprintf(fout, '\t\t<SAT POS>(%7.2f,%7.2f,%7.2f)\n', measurments_queue{n}.sat_x,measurments_queue{n}.sat_y,measurments_queue{n}.sat_z) ;
-        sat_distance = sqrt(measurments_queue{n}.sat_x*measurments_queue{n}.sat_x+measurments_queue{n}.sat_y*measurments_queue{n}.sat_y+measurments_queue{n}.sat_z*measurments_queue{n}.sat_z) ;
-        fprintf(fout, '\t\t\t\t<SAT DISTANCE>%7.2f, <PSEUDORANGE>%7.2f\n', sat_distance, measurments_queue{n}.prMes ) ;
-        satpos(1,n) = measurments_queue{n}.sat_x ;
-        satpos(2,n) = measurments_queue{n}.sat_y ;
-        satpos(3,n) = measurments_queue{n}.sat_z ;
-        obs(n) = measurments_queue{n}.prMes + measurments_queue{n}.sat_clk_corr*299792458 ;
-    end
-    
-    settings.c    = 299792458 ;    % The speed of light, [m/s]
-    settings.useTropCorr = 1 ;     % Use troposphere correction
-    [pos, el, az, dop] = leastSquarePos(satpos, obs, settings) ;
-    
-    [phi, lambda, h] = cart2geo(pos(1), pos(2), pos(3), 5 ) ;
-    
-    ux = pos(1) ;
-    uy = pos(2) ;
-    uz = pos(3) ;
-    gdop = dop ;
-    fprintf(fout,'<GNSS NAVIGATION SOLUTION><ECEF><%f,%f,%f>, <GDOP><%f>, <GEO><%f,%f> <HEIGHT><%f>\n', ...
-        pos(1), pos(2), pos(3), gdop(1), phi, lambda, h ) ;
-    rmpath(gnssLib) ;
-
-
-function [ux,uy,uz,gdop, phi,lambda,h, el,az ] = easy_pvt_solver(fout,measurments_queue)
-    easyLib = getFullPath('..\\easy') ;
-    addpath(easyLib) ;
-    
-    numSat = length(measurments_queue) ;
-    obs = zeros(numSat,1) ;
-    
-    Eph = zeros(21,length(measurments_queue)) ;
-    for n=1:length(measurments_queue)
-        obs(n) = measurments_queue{n}.prMes ;        
-        Eph(:,n) = eph2easy(measurments_queue{n}.s_eph, n ) ; % convert to easy ephemeris
-    end
-    
-    [easy_pos, el, gdop] = recpo_ls(obs,(1:length(obs)),measurments_queue{1}.msrTow,Eph) ;
-    [phi,lambda,h] = togeod(6378137,298.257223563,easy_pos(1),easy_pos(2),easy_pos(3)) ;
-
-    ux = easy_pos(1) ;
-    uy = easy_pos(2) ;
-    uz = easy_pos(3) ;
-    
-    fprintf(fout,'<EASY NAVIGATION SOLUTION><ECEF><%f,%f,%f>, <GDOP><%f>, <GEO><%f,%f> <HEIGHT><%f>\n', ...
-        easy_pos(1), easy_pos(2), easy_pos(3), gdop, phi, lambda, h ) ;
-    
-    rmpath(easyLib) ;
-
 
