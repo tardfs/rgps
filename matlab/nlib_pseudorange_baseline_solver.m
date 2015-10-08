@@ -17,7 +17,7 @@ for n=1:N
     for p=1:K
         recvB_msr = measurmentsB{p} ;
         TowB = recvB_msr{1}.msrTow ;
-        if TowA==TowB
+        if round(TowA)==round(TowB)
             k = p ;
             break ;
         end
@@ -46,7 +46,7 @@ for n=1:N
                 Eph(:,NUMSAT) = eph2easy(recvA_msr{g}.s_eph, NUMSAT ) ;
             end
         end
-        if NUMSAT>4
+        if NUMSAT>3
             BL = BL + 1 ;
             [omc, base] = baseline(ecef_A(2:4),obsA(:),obsB(:),(1:NUMSAT)',TowA,Eph) ;
 

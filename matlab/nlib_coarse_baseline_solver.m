@@ -7,7 +7,7 @@ baseline_data = zeros(5,N) ;
 lastk = 1 ;
 for n=1:N
     for k=lastk:K
-        if ecef_A(1,n)==ecef_B(1,k)
+        if round(ecef_A(1,n))==round(ecef_B(1,k))
             lastk=k ;
             BS = BS + 1 ;
             baseline_data(1,BS) = ecef_A(1,n) ;

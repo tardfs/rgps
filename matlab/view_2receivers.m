@@ -2,9 +2,9 @@ function view_2receivers()
 clc ;
 
 fout = fopen('receiver_out.txt','w+t') ;
-htmlFile = 'RS_twin_15mm_01.html'
-recv1File = '..\data\RS_twin_15mm_01.mat' ;
-recv2File = '..\data\RS_twin_15mm_02.mat' ;
+htmlFile = 'RS_twin_2000mm_01.html'
+recv1File = '..\data\RS_twin_2000mm_01.mat' ;
+recv2File = '..\data\RS_twin_2000mm_02.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
 load(recv1File) ;
 recv1_measurments = measurments_queue ;
@@ -47,7 +47,6 @@ easy_geodetic_B = nlib_ecef2geodetic(easy_ecef_B) ;
 gnss_geodetic_mB = nlib_ecef2geodetic(gnss_ecef_mB) ;
 easy_geodetic_mB = nlib_ecef2geodetic(easy_ecef_mB) ;
 
-
 % baseline
 ubx_baseline_m = ubx_ecef_mB - ubx_ecef_mA ;
 gnss_baseline_m = gnss_ecef_mB - gnss_ecef_mA ;
@@ -56,6 +55,11 @@ prng_baseline = nlib_pseudorange_baseline_solver( easy_ecef_mA, recv1_measurment
 prng_baseline_m = nlib_mean_ecef( prng_baseline ) ;
 ubx_baseline = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
 easy_baseline = nlib_coarse_baseline_solver(easy_ecef_A, easy_ecef_B) ;
+
+% baseline statistics
+stat_num_ubx_bl = size(ubx_baseline,2) ;
+stat_num_easy_bl = size(easy_baseline,2) ;
+stat_num_prng_bl = size(prng_baseline,2) ;
 
 % make js script
 fjs = fopen(htmlFile,'w+t') ;
@@ -78,7 +82,7 @@ for n=1:10
 end
 end
 
-if 1
+if 0
 for n=1:10
    fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_A(2,n), easy_geodetic_A(3,n) ) ;
 end
@@ -95,7 +99,7 @@ end
 end
 
 % mean positions
-if 0
+if 1
 fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#darkGreenIcon''}) ) ;\n', ubx_geodetic_mA(2), ubx_geodetic_mA(3) ) ;
 fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#redIcon''}) ) ;\n', easy_geodetic_mA(2), easy_geodetic_mA(3) ) ;
 fprintf(fjs,  'myMap.geoObjects.add(new ymaps.Placemark([%10.7f, %10.7f],{iconContent:1}, {preset: ''islands#darkBlueIcon''}) ) ;\n', gnss_geodetic_mA(2), gnss_geodetic_mA(3) ) ;
@@ -109,7 +113,7 @@ fprintf(fjs,  '\n' ) ;
 fprintf(fjs,  '}\n' ) ;
 fprintf(fjs,  '</script></head>\n' ) ;
 fprintf(fjs,  '<body>\n' ) ;
-fprintf(fjs,  '<div id="map" style="width:700px; height:500px"></div>\n' ) ;
+fprintf(fjs,  '<div id="map" style="width:1024px; height:768px"></div>\n' ) ;
 fprintf(fjs,  '</body>\n' ) ;
 fprintf(fjs,  '</html>\n' ) ;
 fprintf(fjs,  '\n' ) ;
@@ -123,12 +127,23 @@ fprintf('<easy_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', easy_baseline_m(2),easy_bas
 fprintf('<prng_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', prng_baseline_m(2),prng_baseline_m(3),prng_baseline_m(4), norm(prng_baseline_m(2:4) )) ;
 
 hold off ;
-plot((prng_baseline(1,:)-prng_baseline(1,1))/60,nlib_ecef_norm2(prng_baseline),'Color',[0.2 0.9 0.2],'LineWidth',2) ;
+if size(prng_baseline,2)>1
+    plot((prng_baseline(1,:)-prng_baseline(1,1))/60,nlib_ecef_norm2(prng_baseline),'Color',[0.1 0.1 0.8],'LineWidth',2) ;
+    hold on ;
+end
+if size(ubx_baseline,2)>1
+    plot((ubx_baseline(1,:)-ubx_baseline(1,1))/60,nlib_ecef_norm2(ubx_baseline),'Color',[0.1 0.7 0.1],'LineWidth',2) ;
+end
 hold on ;
-plot((ubx_baseline(1,:)-ubx_baseline(1,1))/60,nlib_ecef_norm2(ubx_baseline),'Color',[0 0.9 0.2],'LineWidth',2) ;
-hold on ;
-plot((easy_baseline(1,:)-easy_baseline(1,1))/60,nlib_ecef_norm2(easy_baseline),'Color',[0.9 0.0 0.2],'LineWidth',2) ;
+if size(easy_baseline,2)>1
+    plot((easy_baseline(1,:)-easy_baseline(1,1))/60,nlib_ecef_norm2(easy_baseline),'Color',[0.7 0.2 0.2],'LineWidth',2) ;
+end
 
+grid on ;
+set(gca,'FontSize',14) ;
+xlabel('sec') ;
+ylabel('baseline, m') ;
+title('Baseline') ;
 
 fclose(fout) ;
 
