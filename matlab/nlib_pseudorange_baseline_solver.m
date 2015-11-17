@@ -1,4 +1,14 @@
-function baseline_data = nlib_pseudorange_baseline_solver(ecef_A, measurmentsA, measurmentsB)
+%function baseline_data = nlib_pseudorange_baseline_solver(ecef_A, measurmentsA, measurmentsB, b_t_corr )
+function baseline_data = nlib_pseudorange_baseline_solver(varargin)
+ecef_A = varargin{1} ;
+measurmentsA = varargin{2} ;
+measurmentsB = varargin{3} ;
+if nargin>3
+    t_delta = varargin{4} ;
+else
+    t_delta = 0 ;
+end
+
 easyLib = getFullPath('..\\easy') ;
 addpath(easyLib) ;
 
@@ -48,7 +58,7 @@ for n=1:N
         end
         if NUMSAT>3
             BL = BL + 1 ;
-            [omc, base] = baseline(ecef_A(2:4),obsA(:),obsB(:),(1:NUMSAT)',TowA,Eph) ;
+            [omc, base] = baseline2(ecef_A(2:4),obsA(:),obsB(:),(1:NUMSAT)',TowA,Eph,t_delta) ;
 
             baseline_data(1, BL) = TowA ;
             baseline_data(2:4, BL) = base(1:3) ;

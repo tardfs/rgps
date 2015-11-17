@@ -2,9 +2,9 @@ function view_2receivers()
 clc ;
 
 fout = fopen('receiver_out.txt','w+t') ;
-htmlFile = 'RS_twin_2000mm_01.html'
-recv1File = '..\data\RS_twin_2000mm_01.mat' ;
-recv2File = '..\data\RS_twin_2000mm_02.mat' ;
+htmlFile = 'RS_matv_50mm.html'
+recv1File = '..\data\RS_matv_50mm_01.mat' ;
+recv2File = '..\data\RS_matv_50mm_02.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
 load(recv1File) ;
 recv1_measurments = measurments_queue ;
