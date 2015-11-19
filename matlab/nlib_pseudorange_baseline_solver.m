@@ -4,9 +4,14 @@ ecef_A = varargin{1} ;
 measurmentsA = varargin{2} ;
 measurmentsB = varargin{3} ;
 if nargin>3
-    t_delta = varargin{4} ;
+    t_delta1 = varargin{4} ;
 else
-    t_delta = 0 ;
+    t_delta1 = 0 ;
+end
+if nargin>4
+    t_delta2 = varargin{5} ;
+else
+    t_delta2 = 0 ;
 end
 
 easyLib = getFullPath('..\\easy') ;
@@ -58,7 +63,7 @@ for n=1:N
         end
         if NUMSAT>3
             BL = BL + 1 ;
-            [omc, base] = baseline2(ecef_A(2:4),obsA(:),obsB(:),(1:NUMSAT)',TowA,Eph,t_delta) ;
+            [omc, base] = baseline2(ecef_A(2:4),obsA(:),obsB(:),(1:NUMSAT)',TowA,Eph,t_delta1,t_delta2) ;
 
             baseline_data(1, BL) = TowA ;
             baseline_data(2:4, BL) = base(1:3) ;

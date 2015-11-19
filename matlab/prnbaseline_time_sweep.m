@@ -5,6 +5,7 @@ fout = fopen('receiver_out.txt','w+t') ;
 htmlFile = 'RS_matv_50mm.html'
 recv1File = '..\data\RS_matv_50mm_01.mat' ;
 recv2File = '..\data\RS_matv_50mm_02.mat' ;
+sweepFile = '..\data\RS_matv_50mm_sweep.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
 load(recv1File) ;
 recv1_measurments = measurments_queue ;
@@ -64,49 +65,58 @@ hold off ;
 
 Colorv = [0.1 0.1 0.8] ;
 n = 0 ;
-x_var = zeros(10000,1) ;
-x_mean = zeros(10000,1) ;
-for t_delta=-6e-3:25e-5:9e-3
-    
-    prng_baseline = nlib_pseudorange_baseline_solver( easy_ecef_mA, recv1_measurments, recv2_measurments, t_delta ) ;
-    prng_baseline_m = nlib_mean_ecef( prng_baseline ) ;
-    
-    n = n+1 ;
-    
-    x_mean(n) = mean(prng_baseline(2,:)) ;
-    x_var(n) = var(prng_baseline(2,:)) ;
+k = 0 ;
+
+t_sweep1 = -6e-3:25e-5:6e-3 ;
+t_sweep2 = -6e-3:25e-5:6e-3 ;
+
+x_var = zeros(length(t_sweep1),length(t_sweep2)) ;
+x_mean = zeros(length(t_sweep1),length(t_sweep2)) ;
+
+for t_delta1 = t_sweep1
+    n = n + 1 ;
+    for t_delta2 = t_sweep2
+        k = k+1 ;
+
+        prng_baseline = nlib_pseudorange_baseline_solver( easy_ecef_mA, recv1_measurments, recv2_measurments, t_delta1, t_delta2 ) ;
+        prng_baseline_m = nlib_mean_ecef( prng_baseline ) ;
 
 
-    % plot data
-    fprintf('\n') ;
-    %fprintf('<ubx_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', ubx_baseline_m(2),ubx_baseline_m(3), ubx_baseline_m(4), norm(ubx_baseline_m(2:4) )) ;
-    %fprintf('<gnss_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', gnss_baseline_m(2),gnss_baseline_m(3), gnss_baseline_m(4), norm(gnss_baseline_m(2:4) )) ;
-    %fprintf('<easy_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', easy_baseline_m(2),easy_baseline_m(3), easy_baseline_m(4), norm(easy_baseline_m(2:4) )) ;
-    fprintf('<prng_time_corr0:> %f\n', t_delta ) ;
-    fprintf('<prng_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', prng_baseline_m(2),prng_baseline_m(3),prng_baseline_m(4), norm(prng_baseline_m(2:4) )) ;
-    fprintf('<prng_x_mean_val:> <%f>\n', x_mean(n) ) ;
-    fprintf('<prng_x_variance:> <%f>\n', x_var(n) ) ;
+        x_mean(n,k) = mean(prng_baseline(2,:)) ;
+        x_var(n,k) = var(prng_baseline(2,:)) ;
 
-    %hold off ;
-    if size(prng_baseline,2)>1
-        plot((prng_baseline(1,:)-prng_baseline(1,1))/60,prng_baseline(2,:),'Color',Colorv,'LineWidth',2) ;
-        hold on ;
-        %plot((prng_baseline(1,:)-prng_baseline(1,1))/60,prng_baseline(3,:),'Color',[0.1 0.7 0.1],'LineWidth',2) ;
-        %hold on ;
+
+        % plot data
+        fprintf('\n') ;
+        %fprintf('<ubx_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', ubx_baseline_m(2),ubx_baseline_m(3), ubx_baseline_m(4), norm(ubx_baseline_m(2:4) )) ;
+        %fprintf('<gnss_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', gnss_baseline_m(2),gnss_baseline_m(3), gnss_baseline_m(4), norm(gnss_baseline_m(2:4) )) ;
+        %fprintf('<easy_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', easy_baseline_m(2),easy_baseline_m(3), easy_baseline_m(4), norm(easy_baseline_m(2:4) )) ;
+        fprintf('<t_delta1, t_delta2:> %f %f\n', t_delta1, t_delta2 ) ;
+        fprintf('<prng_baseline_m:> <ECEF>%f,%f,%f <R>%f\n', prng_baseline_m(2),prng_baseline_m(3),prng_baseline_m(4), norm(prng_baseline_m(2:4) )) ;
+        fprintf('<prng_x_mean_val:> <%f>\n', x_mean(n) ) ;
+        fprintf('<prng_x_variance:> <%f>\n', x_var(n) ) ;
+
+        %hold off ;
+    %    if size(prng_baseline,2)>1
+    %        plot((prng_baseline(1,:)-prng_baseline(1,1))/60,prng_baseline(2,:),'Color',Colorv,'LineWidth',2) ;
+    %        hold on ;
+            %plot((prng_baseline(1,:)-prng_baseline(1,1))/60,prng_baseline(3,:),'Color',[0.1 0.7 0.1],'LineWidth',2) ;
+            %hold on ;
+    %    end
+
+    %     Colorv(1) = Colorv(1)+0.02 ;
+    %     Colorv(2) = Colorv(2)+0.02 ;
+    %     Colorv(3) = Colorv(3)-0.03 ;
+    %     Colorv(Colorv>1.0) = 1.0 ;
+    %     Colorv(Colorv<0.0) = 0.0 ;
+
+    %    drawnow ;
+
     end
-    
-    Colorv(1) = Colorv(1)+0.05 ;
-    Colorv(2) = Colorv(2)+0.05 ;
-    Colorv(3) = Colorv(3)-0.04 ;
-    Colorv(Colorv>1.0) = 1.0 ;
-    Colorv(Colorv<0.0) = 0.0 ;
-    
-    drawnow ;
-
 end
 
-x_var = x_var(1:n) ;
-x_mean = x_mean(1:n) ;
+%x_var = x_var(1:n) ;
+%x_mean = x_mean(1:n) ;
 
 %hold off ;
 % if size(prng_baseline,2)>1
@@ -121,22 +131,24 @@ x_mean = x_mean(1:n) ;
 %     plot((easy_baseline(1,:)-easy_baseline(1,1))/60,nlib_ecef_norm2(easy_baseline),'Color',[0.7 0.2 0.2],'LineWidth',2) ;
 % end
 
-grid on ;
-set(gca,'FontSize',14) ;
-xlabel('sec') ;
-ylabel('baseline, m') ;
-title('Baseline') ;
+% grid on ;
+% set(gca,'FontSize',14) ;
+% xlabel('sec') ;
+% ylabel('baseline, m') ;
+% title('Baseline') ;
+% 
+% figure(2) ;
+% hold off ;
+% plot(t_sweep1,x_mean,'Color',[0.1 0.1 0.8],'LineWidth',2) ;
+% hold on ;
+% grid on ;
+% %plot(-6e-3:25e-5:9e-3,sqrt(x_var),'Color',[0.1 0.7 0.1],'LineWidth',2) ;
+% set(gca,'FontSize',14) ;
+% xlabel('time correction, sec') ;
+% %ylabel('ECEF X, m') ;
+% title('X mean coord') ;
 
-figure(2) ;
-hold off ;
-plot(-6e-3:25e-5:9e-3,x_mean,'Color',[0.1 0.1 0.8],'LineWidth',2) ;
-hold on ;
-grid on ;
-%plot(-6e-3:25e-5:9e-3,sqrt(x_var),'Color',[0.1 0.7 0.1],'LineWidth',2) ;
-set(gca,'FontSize',14) ;
-xlabel('time correction, sec') ;
-%ylabel('ECEF X, m') ;
-title('X mean coord') ;
+save(sweepFile, 'x_mean', 'x_var', 't_sweep1', 't_sweep2') ;
 
 fclose(fout) ;
 
