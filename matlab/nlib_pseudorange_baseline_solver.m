@@ -63,6 +63,10 @@ for n=1:N
         end
         if NUMSAT>3
             BL = BL + 1 ;
+            
+            % simple check for sattelite list quality
+            %[A_pos, ~, ~] = recpo_ls(obsA(:),(1:NUMSAT)',TowA, Eph ) ;
+            
             [omc, base] = baseline2(ecef_A(2:4),obsA(:),obsB(:),(1:NUMSAT)',TowA,Eph,t_delta1,t_delta2) ;
 
             baseline_data(1, BL) = TowA ;

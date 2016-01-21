@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function baseline_data = nlib_L1_baseline_solver(measurmentsA, measurmentsB)
+function baseline_data = nlib_L1_baseline_solver(fout, measurmentsA, measurmentsB)
 
 BL = 0 ; % number of baselines computed
 
@@ -9,6 +9,16 @@ K = length(measurmentsB) ; % number of receiver B measurements
 baseline_data = zeros(5,max(N,K)) ;
 
 L1_state = [] ;
+
+% compute time step for Kalman filter
+dt_A = zeros(N-1,1) ;
+dt_B = zeros(N-1,1) ;
+for n=2:N
+    dt_A(n-1) = measurmentsA{n}{1}.msrTow - measurmentsA{n-1}{1}.msrTow ;
+    dt_B(n-1) = measurmentsB{n}{1}.msrTow - measurmentsB{n-1}{1}.msrTow ;
+end
+
+T = 2 ;
 
 for n=1:N
     recvA_msr = measurmentsA{n} ;
@@ -28,8 +38,10 @@ for n=1:N
         % corresponding measurment found for receiver 2
         recvB_msr = measurmentsB{k} ;
         sat_list = [] ;
-        obsA = [] ;
-        obsB = [] ;
+        prMesA = [] ;
+        prMesB = [] ;
+        cpMesA = [] ;
+        cpMesB = [] ;
         Eph = [] ;
         NUMSAT = 0 ;
         % proceed with sattelite list
@@ -45,16 +57,19 @@ for n=1:N
             if s1>0
                 NUMSAT = NUMSAT + 1 ;
                 sat_list(NUMSAT) = recvA_msr{g}.svId ;
-                obsA(NUMSAT) = recvA_msr{g}.prMes ;
-                obsB(NUMSAT) = recvB_msr{s1}.prMes ;
+                prMesA(NUMSAT) = recvA_msr{g}.prMes ;
+                prMesB(NUMSAT) = recvB_msr{s1}.prMes ;
+                cpMesA(NUMSAT) = recvA_msr{g}.cpMes ;
+                cpMesB(NUMSAT) = recvB_msr{s1}.cpMes ;
                 Eph(:,NUMSAT) = eph2easy(recvA_msr{g}.s_eph, NUMSAT ) ;
             end
         end
         if NUMSAT>3
             BL = BL + 1 ;
-	    measurementTime = (TowA+TowB)/2 ;
-
-	    L1_state = nlib_L1_baseline(L1_state, measurementTime, svIndices, Eph, obsA, obsB) ;
+            
+            measurementTime = TowA ;
+            
+            L1_state = nlib_L1_baseline(fout, L1_state, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB ) ;
 
             baseline_data(1, BL) = measurementTime ;
             baseline_data(2:4, BL) = base(1:3) ;
