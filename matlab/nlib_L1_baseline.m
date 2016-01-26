@@ -32,17 +32,30 @@ if isempty(L1_state)
     rmpath(easyLib) ;
     
     % initialize state vector
+    % x(1)..x(3) are relative ECEF coordinates
     % x(1) - ECEF delta X
     % x(2) - ECEF delta Y
     % x(3) - ECEF delta Z
-    x = zeros(6,1) ;
+    x_len = 7 ;
+    x = zeros(x_len,1) ;
     x(1:3) = A_pos - B_pos ;
 
+    % x(4)..x(7) are double-difference carrier-phase ambiguity terms
+    % $\Delta\nabla\phi^{jk}_{AB}$
+    % x(4) - $\Delta\nabla\phi^{12}_{AB}$
+    % x(5) - $\Delta\nabla\phi^{13}_{AB}$
+    % x(6) - $\Delta\nabla\phi^{14}_{AB}$
+    % x(7) - $\Delta\nabla\phi^{15}_{AB}$
     k = 4 ;
-    dphi_AB_1 = cpMesA(1) - cpMesB(1) ;    
+    dphi_AB_1 = cpMesA(1) - cpMesB(1) ;
     for n=2:5
         x(k) = dphi_AB_1 - (cpMesA(n)-cpMesB(n)) ;
         k = k + 1 ;
     end
+    
+    % State vector covariance matrix
+    P = diag([5 5 5 50 50 50 50]) ;
+    
+    % 
     
 end
