@@ -1,4 +1,6 @@
-function L1_state = nlib_L1_baseline(fout, L1_state, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB)
+function L1 = nlib_L1_baseline(fout, L1, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB)
+% L1 - is L1 state structure
+
 easyLib = getFullPath('..\\easy') ;
 
 fprintf(fout,'<L1_BASELINE><time: %d>\n', measurementTime ) ;
@@ -14,15 +16,31 @@ end
 % obsA = obsA(sat_reindex) ;
 % obsB = obsB(sat_reindex) ;
 
-if isempty(L1_state)
+if isempty(L1)
 
     fprintf(fout, '\t<INIT L1 STATE>\n' ) ;
+    
+    % filter parameters 
+    dt = 2 ;                % time step, sec
+    
+    % initial values 
+    sigma2_ecef =     5 ;   % $\sigma^2_{\Delta X}$ - initial variance of relative position
+    sigma2_dN =  50 ;       % $\sigma^2_{\Delta\nabla\phi^{12}_{AB}}$ - initial 
+                            % variance of double difference carrier phase
+                            % measurements
+    qp = 15 ;
+    qN = 1.1e-2 ;
+    
+    ra = 10.24 ;            % code variances
+    rb = 
+    
+    
     % init L1_state
     % sat_list - is the array of GPS sattelite IDs
-    L1_state.sat_list = sat_list ;
+    L1.sat_list = sat_list ;
     
     % choose base sattelite index in the list
-    L1_state.base_sv = sat_list(1) ;
+    L1.base_sv = sat_list(1) ;
     fprintf(fout,'\t<BASE SATTELITE ID:><%d>\n', L1_state.base_sv ) ;
     
     % get rough A & B positions
@@ -54,8 +72,12 @@ if isempty(L1_state)
     end
     
     % State vector covariance matrix
-    P = diag([5 5 5 50 50 50 50]) ;
+    P = diag([sigma2_ecef sigma2_ecef sigma2_ecef sigma2_dN sigma2_dN sigma2_dN sigma2_dN]) ;
     
-    % 
+    % Discrete noise matrix
+    Qd = diag([qp qp qp qN qN qN qN]*dt) ;
+    
+    % Measurement covariance matrix
+    
     
 end
