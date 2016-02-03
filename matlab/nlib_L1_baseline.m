@@ -76,11 +76,11 @@ if isempty(L1)
         k = k + 1 ;
     end
     
-    % State vector covariance matrix
-    P = diag([sigma2_ecef sigma2_ecef sigma2_ecef sigma2_dN sigma2_dN sigma2_dN sigma2_dN]) ;
+    % State vector covariance matrix P(x_len,x_len)
+    P = diag([ones(3,1)*sigma2_ecef; ones(numSat-1,1)*sigma2_dN] ) ;
     
-    % Discrete noise matrix
-    Qd = diag([qp qp qp qN qN qN qN]*dt) ;
+    % Discrete noise covariance matrix
+    Qd = diag( [ones(3,1)*qp; ones(numSat-1,1)*qN]*dt ) ;
     
     % Measurement covariance matrix, R = E(z'z), $z=($\Delta\nabla\rho^{12}_{AB}$)$ - measurements vector
     R = zeros((numSat-1)*2, (numSat-1)*2) ; % oservation
@@ -88,5 +88,6 @@ if isempty(L1)
     D_matrix = diag(ones(numSat-1,1)) ;
     R(1:(numSat-1),1:(numSat-1)) = E_matrix*rc + D_matrix*ra ;
     R(numSat:end,numSat:end) = E_matrix*rd + D_matrix*rb ;
+    
     
 end
