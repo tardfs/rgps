@@ -1,0 +1,129 @@
+\documentclass[a4paper]{article}
+%\documentclass[twocolumn,a4paper]{proc}
+\usepackage[T2A]{fontenc}
+\usepackage[cp1251]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[cmex10]{amsmath}
+\usepackage{amsfonts}
+\usepackage{pscyr}
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+\renewcommand{\rmdefault}{fjn}
+\setlength{\textwidth}{170mm}
+\setlength{\textheight}{240mm}
+\voffset=-20mm
+\hoffset=-20mm
+\title{Реализация процедуры L1}
+%\lhead{Кафедра "Управление и моделирование систем"}
+%\lfoot{Семинар 1}
+\begin{document}
+%\maketitle
+%\begin{abstract}
+%Рассматриваются методы ...
+%\end{abstract}
+\section{Статический фильтр}
+Прогноз вектора состояния
+\begin{equation}
+\begin{array}{ccc}
+\label{eqn_1}
+x_{k+1} &=\Phi_k & x_k \\
+\begin{bmatrix}
+x_{ECEF} \\
+y_{ECEF} \\
+z_{ECEF} \\
+\Delta\nabla\phi^{1,2}_{AB} \\
+\Delta\nabla\phi^{1,3}_{AB} \\
+\vdots \\
+\Delta\nabla\phi^{1,numSat}_{AB} \\
+\end{bmatrix}_{k+1} &= 
+\begin{bmatrix}
+1 & 0 & \ldots & 0 \\
+0 & 1 & \ldots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \ldots & 1 \\
+\end{bmatrix} & 
+\begin{bmatrix}
+x_{ECEF} \\
+y_{ECEF} \\
+z_{ECEF} \\
+\Delta\nabla\phi^{1,2}_{AB} \\
+\Delta\nabla\phi^{1,3}_{AB} \\
+\vdots \\
+\Delta\nabla\phi^{1,numSat}_{AB} \\
+\end{bmatrix}_{k}
+\end{array}
+\end{equation}
+Прогноз ковариационной матрицы вектора состояния
+\begin{align}
+& P_{k+1} =\Phi_kP_k\Phi_k^T+Q_d \\
+& \begin{bmatrix} \nonumber
+\sigma_{x,x} & \sigma_{x,y} & \sigma_{x,z} & \ldots & \ldots & \ldots & \ldots \\
+\sigma_{y,x} & \sigma_{y,y} & \sigma_{y,z} & \ldots & \ldots & \ldots & \ldots \\
+\sigma_{z,x} & \sigma_{z,y} & \sigma_{z,z} & \ldots & \ldots & \ldots & \ldots \\
+\ldots & \ldots & \ldots & \sigma\Delta\nabla\phi^{1,2}_{AB}  & \ldots & \ldots & \ldots \\
+\ldots & \ldots & \ldots & \ldots & \sigma\Delta\nabla\phi^{1,3}_{AB} & \ldots & \ldots \\
+\ldots & \ldots & \ldots & \ldots & \ldots  & \ddots & \ldots \\
+\ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \sigma\Delta\nabla\phi^{1,numSat}_{AB} \\
+\end{bmatrix}_{k+1}=\\
+\begin{bmatrix}
+1 & 0 & \ldots & 0 \\
+0 & 1 & \ldots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \ldots & 1 \\
+\end{bmatrix}  
+& \begin{bmatrix} \nonumber
+\sigma_{x,x} & \sigma_{x,y} & \sigma_{x,z} & \ldots & \ldots & \ldots & \ldots \\
+\sigma_{y,x} & \sigma_{y,y} & \sigma_{y,z} & \ldots & \ldots & \ldots & \ldots \\
+\sigma_{z,x} & \sigma_{z,y} & \sigma_{z,z} & \ldots & \ldots & \ldots & \ldots \\
+\ldots & \ldots & \ldots & \sigma\Delta\nabla\phi^{1,2}_{AB}  & \ldots & \ldots & \ldots \\
+\ldots & \ldots & \ldots & \ldots & \sigma\Delta\nabla\phi^{1,3}_{AB} & \ldots & \ldots \\
+\ldots & \ldots & \ldots & \ldots & \ldots  & \ddots & \ldots \\
+\ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \sigma\Delta\nabla\phi^{1,numSat}_{AB} \\
+\end{bmatrix}_{k}
+&\begin{bmatrix}
+1 & 0 & \ldots & 0 \\
+0 & 1 & \ldots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \ldots & 1 \\
+\end{bmatrix} +\\
+&\begin{bmatrix}
+q_p\Delta t & 0 & 0 & 0 & \ldots & 0 \\
+0  & q_p\Delta t & 0 & 0 & \ldots & 0 \\
+0  & 0 & q_p\Delta t & 0 & \ldots & 0 \\
+0  & 0 & 0 & q_N\Delta t & \ldots & 0 \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+0  & 0 & 0 & 0 & \ldots & q_N\Delta t \\
+\end{bmatrix}  
+\end{align}
+Уравнение наблюдения
+\begin{equation}
+\label{eqn_4}
+\begin{array}{cccc}
+z_k = & H & x_k + & v_k \\
+\begin{bmatrix}
+\Delta\nabla\rho^{1,2}_{AB} \\
+\Delta\nabla\rho^{1,3}_{AB} \\
+\vdots \\
+\Delta\nabla\rho^{1,numSat}_{AB} \\
+\Delta\nabla\phi^{1,2}_{AB} \\
+\Delta\nabla\phi^{1,3}_{AB} \\
+\vdots \\
+\Delta\nabla\phi^{1,numSat}_{AB} \\
+\end{bmatrix}_{k} &= 
+\begin{bmatrix}
+(\mathbf{e^1}-\mathbf{e^2})
+\end{bmatrix}
+\end{array}
+\end{equation}
+
+
+\begin{thebibliography}{1}
+\bibitem{Comstock} Stephen J. Comstock, 
+Development of a Low-Latency, High Data Rate, Differential GPS Relative Positioning System for 
+UAV Formation Flight control. {\em THESIS Presented to the Faculty Department of Electrical and Computer 
+Engineering Graduate School of Engineering and Management Air Force Institute of Technology}, 2006.
+\bibitem{Welch} Greg Welch, Gary Bishop, An Introduction to the Kalman Filter. ACM-2001. ACM Inc.
+\end{thebibliography}
+\end{document}
+
+
