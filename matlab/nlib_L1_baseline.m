@@ -89,5 +89,4 @@ if isempty(L1)
     R(1:(numSat-1),1:(numSat-1)) = E_matrix*rc + D_matrix*ra ;
     R(numSat:end,numSat:end) = E_matrix*rd + D_matrix*rb ;
     
-    
 end

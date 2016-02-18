@@ -21,16 +21,39 @@
 %\begin{abstract}
 %Рассматриваются методы ...
 %\end{abstract}
-\section{Статический фильтр}
+\section{Статический фильтр Калмана}
+$(\Delta x,\Delta y,\Delta z)$ - искомый вектор относительных координат в системе ECEF.\\
+Кодовая псевдодальность, м:
+\begin{equation}
+\rho=r+c(\delta t_r-\delta t_{sv})+T+I+m_\rho +\nu_\rho
+\end{equation}
+$r$ - истинное расстояние от приемника до спутника, м \\
+$c$ - скорость света м/с \\
+$\delta t_r$ - ошибка времени в приемнике, с \\
+$\delta t_{sv}$ - ошибка времени на спутнике, с \\
+$T$ - тропосферная ошибка, м \\
+$I$ - Ионосферная задержка, м \\
+$m_\rho$ - Ошибка вследствие многолучевого распространения, м \\
+$\nu_\rho$ - Ошибка вызванная тепловым шумом, м \\
+Фазовые измерения, м:
+\begin{equation}
+\phi=\lambda^{-1}(r+c(\delta t_r-\delta t_{sv})+T+I+m_\phi +\nu_\phi)+N
+\end{equation}
+$\phi$ - фазовое измерение GPS, циклы (количество длин волн) \\
+$\lambda$ - длина волны, м/цикл \\
+$m_\phi$ - ошибка фазового измерения, вызванная многолучевым распространением, циклы \\
+$nu_\phi$ - ошибка фазового измерения из-за теплового шума, циклы \\
+$N$ - фазовая неоднозначность (целое число длин волн, неизвестное на стороне приемника). \\
+\\
 Прогноз вектора состояния
 \begin{equation}
 \begin{array}{ccc}
 \label{eqn_1}
 x_{k+1} &=\Phi_k & x_k \\
 \begin{bmatrix}
-x_{ECEF} \\
-y_{ECEF} \\
-z_{ECEF} \\
+\Delta x \\
+\Delta y \\
+\Delta z \\
 \Delta\nabla\phi^{1,2}_{AB} \\
 \Delta\nabla\phi^{1,3}_{AB} \\
 \vdots \\
@@ -43,9 +66,9 @@ z_{ECEF} \\
 0 & 0 & \ldots & 1 \\
 \end{bmatrix} & 
 \begin{bmatrix}
-x_{ECEF} \\
-y_{ECEF} \\
-z_{ECEF} \\
+\Delta x \\
+\Delta y \\
+\Delta z \\
 \Delta\nabla\phi^{1,2}_{AB} \\
 \Delta\nabla\phi^{1,3}_{AB} \\
 \vdots \\
@@ -99,7 +122,7 @@ q_p\Delta t & 0 & 0 & 0 & \ldots & 0 \\
 \begin{equation}
 \label{eqn_4}
 \begin{array}{cccc}
-z_k = & H & x_k + & v_k \\
+z_k = & H & x_k & + v_k \\
 \begin{bmatrix}
 \Delta\nabla\rho^{1,2}_{AB} \\
 \Delta\nabla\rho^{1,3}_{AB} \\
@@ -111,10 +134,35 @@ z_k = & H & x_k + & v_k \\
 \Delta\nabla\phi^{1,numSat}_{AB} \\
 \end{bmatrix}_{k} &= 
 \begin{bmatrix}
-(\mathbf{e^1}-\mathbf{e^2})
-\end{bmatrix}
+(\mathbf{e^1}-\mathbf{e^2}) & 0 & 0 & \ldots & 0 \\
+(\mathbf{e^1}-\mathbf{e^3}) & 0 & 0 & \ldots & 0 \\
+\ldots & \ldots & \ldots & \ldots  & \ldots \\ 
+(\mathbf{e^1}-\mathbf{e^{S}}) & 0 & 0  & \ldots & 0 \\
+\lambda^{-1}(\mathbf{e^1}-\mathbf{e^2}) & 1 & 0  & \ldots & 0 \\
+\lambda^{-1}(\mathbf{e^1}-\mathbf{e^3}) & 0 & 1  & \ldots & 0 \\
+\ldots & \ldots & \ldots & \ldots \\
+\lambda^{-1}(\mathbf{e^1}-\mathbf{e^{S}}) & 0 & 0  & \ldots & 1 \\
+\end{bmatrix} &
+\begin{bmatrix}
+\Delta x \\
+\Delta y \\
+\Delta z \\
+\Delta\nabla N^{1,2}_{AB} \\
+\Delta\nabla N^{1,3}_{AB} \\
+\vdots \\
+\Delta\nabla N^{1,numSat}_{AB} \\
+\end{bmatrix}_{k}
 \end{array}
 \end{equation}
+
+Единичный вектор $\mathbf{e^n}$ это строка $\mathbf{e^n}=(e^n_x,e^n_y,e^n_z)$. Этот вектор определяет направление 
+от приемника на $n$-ый спутник. Так как расстояние от приемника до спутника примерно $20\times 10^6$м, 
+то эти вектора для обоих приемников совпадают с высокой точностью. В документе \cite{Comstock} указано, что эти вектора
+вычисляет процедура фильтра Калмана, но я пока не вижу как она это может сделать, так как эти вектора там 
+как раз и используются как элементы матриц которые определяют параметры фильтра. Для начала буду вычислять эти 
+вектора грубо по абсолюным координатам приемника и спутника. Тогда матрица наблюдения определяется следующим образом:
+
+
 
 
 \begin{thebibliography}{1}
