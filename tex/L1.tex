@@ -5,7 +5,7 @@
 \usepackage[russian]{babel}
 \usepackage[cmex10]{amsmath}
 \usepackage{amsfonts}
-\usepackage{pscyr}
+%\usepackage{pscyr}
 %\usepackage{fancyhdr}
 %\pagestyle{fancy}
 \renewcommand{\rmdefault}{fjn}
@@ -45,6 +45,53 @@ $m_\phi$ - ошибка фазового измерения, вызванная многолучевым распространением, ц
 $nu_\phi$ - ошибка фазового измерения из-за теплового шума, циклы \\
 $N$ - фазовая неоднозначность (целое число длин волн, неизвестное на стороне приемника). \\
 \\
+Первая разность фазовых измерений между двумя приемниками $A$ и $B$ относительно $k$-го спутника позволяет избавиться от ошибки $\delta t_{sv}^k$ времени на $k$-ом спутнике:
+\begin{align*}
+\Delta\phi_{AB}^k = &\phi_{A}^k-\phi_{B}^k =\\
+&\lambda^{-1}(r_A^k+c(\delta t_{r_A}-\delta t_{sv}^k)+T_A^k+I_A^k+m_{\phi_A}^k +\nu_{\phi_A})^k+N_A^k - \\
+&(\lambda^{-1}(r_B^k+c(\delta t_{r_B}-\delta t_{sv}^k)+T_B^k+I_B^k+m_{\phi_B}^k +\nu_{\phi_B})^k+N_B^k) = \\
+\\
+&\lambda^{-1}(\Delta r^k_{AB}+c\delta t_{r_{AB}}+\Delta T^k_{AB}+\Delta I^k_{AB}+\Delta m^k_{\phi_{AB}} +\Delta\nu_{\phi^k_{AB}})+\Delta N^k_{AB}  \\
+\end{align*}
+
+Вторая разность образуется как разность первых разностей для двух спутников $j$ и $k$. Вычисление второй разности позволяет 
+устранить разность ошибок времени $\delta t_{r_{AB}}$ между приемниками $A$ и $B$:
+\begin{align}
+\Delta\nabla\phi_{AB}^{jk} = &\Delta\phi_{AB}^j-\Delta\phi_{AB}^k =\nonumber \\
+& \lambda^{-1}(\Delta r^j_{AB}+c\delta t_{r_{AB}}+\Delta T_{AB}^j+\Delta I_{AB}^j+\Delta m^j_{\phi_{AB}} +\Delta\nu_{\phi^j_{AB}})+\Delta N^j_{AB} -\nonumber \\
+& (\lambda^{-1}(\Delta r^k_{AB}+c\delta t_{r_{AB}}+\Delta T_{AB}^k+\Delta I_{AB}^k+\Delta m^k_{\phi_{AB}} +\Delta\nu_{\phi^k_{AB}})+\Delta N^k_{AB})  \\
+& \nonumber \\
+& \lambda^{-1}(\Delta\nabla r^{jk}_{AB}+\Delta\nabla T_{AB}^{jk}+\Delta\nabla I_{AB}^{jk}+\Delta\nabla m^{jk}_{\phi_{AB}} +\Delta\nabla\nu_{\phi^{jk}_{AB}})+\Delta\nabla N^{jk}_{AB} \nonumber \\
+\end{align}
+
+Если приемник двухчастотный, то вместо простого фазового измерения $\phi$ используется сумма 
+(narrowline) $\phi_{NL}=\phi_{L1}+\phi_{L2}$ или разность (wideline) $\phi_{WL}=\phi_{L1}-\phi_{L2}$ 
+фазовых измерений на данном приемнике. 
+Такой подход значительно упрощает разрешение неоднозначности
+фазовых измерений (определение истинного значения $N$).
+
+Фильтр Калмана представляет собой итерационную процедуру, где каждая итерация состоит из двух этапов:
+прогноза и коррекции на основе измерения. Прогноз вектора состояния:
+\begin{align}
+x^-_k = \Phi_{k-1} x_{k-1}
+\end{align}
+Прогноз корреляционной матрицы вектора состояния:
+\begin{align}
+P^-_k = \Phi_{k-1} P_{k-1} \Phi_{k-1}^T + Q_d
+\end{align}
+Коррекция вектора состояния осуществляется на основе наблюдений:
+\begin{align}
+x_k = x^-_k + K_k(z_k-Hx^-_k)
+\end{align}
+Здесь $K_k$ - матричный коэффициент усиления Калмана на $k$-м шаге.
+\begin{align}
+K_k = P_kH^T(HP_kH^T+R)^{-1}
+\end{align}
+Аналогичным образом обновляется корреляционная матрица вектора состояния:
+\begin{align}
+P_k = P^-_k - K_kHP^-_k
+\end{align}
+
 Прогноз вектора состояния
 \begin{equation}
 \begin{array}{ccc}
