@@ -72,7 +72,7 @@ for n=1:N
             L1_state = nlib_L1_baseline(fout, L1_state, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB ) ;
 
             baseline_data(1, BL) = measurementTime ;
-            baseline_data(2:4, BL) = base(1:3) ;
+            baseline_data(2:4, BL) = L1_state.x(1:3) ;
         end
         
     end

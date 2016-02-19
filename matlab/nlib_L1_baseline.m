@@ -1,4 +1,10 @@
 function L1 = nlib_L1_baseline(fout, L1, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB)
+
+% some physical constants
+v_light = 299792458 ;	     % vacuum speed of light m/s
+f1 = 154*10.23e6 ;		     % L1 frequency, Hz
+lambda1 = v_light/f1 ;	     % wavelength on L1:  .19029367  m
+
 % L1 - is L1 state structure
 
 easyLib = getFullPath('..\\easy') ;
@@ -43,13 +49,15 @@ if isempty(L1)
     
     % choose base sattelite index in the list
     L1.base_sv = sat_list(1) ;
-    fprintf(fout,'\t<BASE SATTELITE ID:><%d>\n', L1_state.base_sv ) ;
+    fprintf(fout,'\t<BASE SATTELITE ID:><%d>\n', L1.base_sv ) ;
     
     % get rough A & B positions
     addpath(easyLib) ;
-    [A_pos, ~, ~] = recpo_ls(prMesA(:),(1:numSat)', measurementTime, Eph ) ;
-    [B_pos, ~, ~] = recpo_ls(prMesB(:),(1:numSat)', measurementTime, Eph ) ;
+    [A_pos, ~, ~, A_basic_obs] = recpo_ls(prMesA(:),(1:numSat)', measurementTime, Eph ) ;
+    [B_pos, ~, ~, ~] = recpo_ls(prMesB(:),(1:numSat)', measurementTime, Eph ) ;
     rmpath(easyLib) ;
+    
+    satPos = A_basic_obs(:,1:3) ;
     
     % numSat determines size x_len of state vector, x_len = 3(ECEF) +
     % (numSat-1) double differences
@@ -61,7 +69,7 @@ if isempty(L1)
     % x(2) - ECEF delta Y
     % x(3) - ECEF delta Z
     x = zeros(x_len,1) ;
-    x(1:3) = A_pos - B_pos ;
+    x(1:3) = A_pos(1:3) - B_pos(1:3) ;
 
     % x(4)..x(end) are double-difference carrier-phase ambiguity terms
     % x(4) - $\Delta\nabla\phi^{12}_{AB}$
@@ -76,6 +84,9 @@ if isempty(L1)
         k = k + 1 ;
     end
     
+    % Fundamental matrix
+    F = eye(x_len) ;
+    
     % State vector covariance matrix P(x_len,x_len)
     P = diag([ones(3,1)*sigma2_ecef; ones(numSat-1,1)*sigma2_dN] ) ;
     
@@ -89,4 +100,66 @@ if isempty(L1)
     R(1:(numSat-1),1:(numSat-1)) = E_matrix*rc + D_matrix*ra ;
     R(numSat:end,numSat:end) = E_matrix*rd + D_matrix*rb ;
     
+    % compute Esv matrix
+    % each row is union vector e corresponded to n-th sattelite
+    Esv = satPos - repmat(A_pos(1:3).',numSat,1) ;
+    for s=1:numSat
+        Esv(s,:) = Esv(s,:)/norm(Esv(s,:),2) ;
+    end
+    
+    % Observation marix
+    H = zeros((numSat-1)*2,x_len) ;
+    for n=1:numSat-1
+        H(n,1:3) = Esv(1,:) - Esv(n+1,:) ;
+        H(n+(numSat-1),1:3) = H(n,1:3)/lambda1 ;
+        H(n+(numSat-1),n+3) = 1 ;
+    end    
+    
+    L1.x = x ;
+    L1.F = F ;
+    L1.P = P ;
+    L1.Qd = Qd ;
+    L1.R = R ;
+    L1.H = H ;
+    
 end
+
+x = L1.x ;
+F = L1.F ;
+P = L1.P ;
+Qd = L1.Qd ;
+R = L1.R ;
+H = L1.H ;
+
+% prediction stage
+x = F*x ;
+P = F*P*F' + Qd ;
+
+% ambiguity resolution
+addpath(easyLib) ;
+y = lambda(x(4:end), P(4:end,4:end)) ;
+rmpath(easyLib) ;
+
+% get measurement vector z
+zrho = zeros(numSat-1,1) ;
+zphi = zeros(numSat-1,1) ;
+drho_AB_1 = prMesA(1) - prMesB(1) ;
+dphi_AB_1 = cpMesA(1) - cpMesB(1) ;
+for n=2:numSat
+    zrho(n-1) = drho_AB_1 - (prMesA(n)-prMesB(n)) ;
+    zphi(n-1) = dphi_AB_1 - (cpMesA(n)-cpMesB(n)) ;
+end
+z = [zrho;zphi] ;
+
+% correction stage
+K = P*H'*inv(H*P*H'+R) ;
+x = x + K*(z - H*x) ;
+P = P - K*H*P ;
+
+% save context
+L1.x = x ;
+L1.F = F ;
+L1.P = P ;
+L1.Qd = Qd ;
+L1.R = R ;
+L1.H = H ;

@@ -5,7 +5,7 @@
 \usepackage[russian]{babel}
 \usepackage[cmex10]{amsmath}
 \usepackage{amsfonts}
-%\usepackage{pscyr}
+\usepackage{pscyr}
 %\usepackage{fancyhdr}
 %\pagestyle{fancy}
 \renewcommand{\rmdefault}{fjn}
@@ -208,6 +208,19 @@ z_k = & H & x_k & + v_k \\
 вычисляет процедура фильтра Калмана, но я пока не вижу как она это может сделать, так как эти вектора там 
 как раз и используются как элементы матриц которые определяют параметры фильтра. Для начала буду вычислять эти 
 вектора грубо по абсолюным координатам приемника и спутника. Тогда матрица наблюдения определяется следующим образом:
+\begin{equation}
+H = 
+\begin{bmatrix}
+\Delta e^{1,2}_x & \Delta e^{1,2}_y & \Delta e^{1,2}_z & 0 & 0 & \ldots & 0 \\
+\Delta e^{1,3}_x & \Delta e^{1,3}_y & \Delta e^{1,3}_z & 0 & 0 & \ldots & 0 \\
+\ldots & \ldots & \ldots & \ldots  & \ldots \\ 
+\Delta e^{1,S}_x & \Delta e^{1,S}_y & \Delta e^{1,S}_z & 0 & 0 & \ldots & 0 \\
+\lambda^{-1}(\Delta e^{1,2}_x & \Delta e^{1,2}_y & \Delta e^{1,2}_z) & 1 & 0  & \ldots & 0 \\
+\lambda^{-1}(\Delta e^{1,3}_x & \Delta e^{1,3}_y & \Delta e^{1,3}_z) & 0 & 1  & \ldots & 0 \\
+\ldots & \ldots & \ldots & \ldots & \ldots & \ldots & \ldots \\
+\lambda^{-1}(\Delta e^{1,S}_x & \Delta e^{1,S}_y & \Delta e^{1,S}_z) & 0 & 0  & \ldots & 1 \\
+\end{bmatrix}
+\end{equation}
 
 
 
