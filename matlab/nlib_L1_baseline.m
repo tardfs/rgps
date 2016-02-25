@@ -122,6 +122,46 @@ if isempty(L1)
     L1.R = R ;
     L1.H = H ;
     
+else
+    % checking for sat list
+    rbldFlag = 0 ;
+    if length(L1.sat_list)~=length(sat_list)
+        rbldFlag = 1 ;
+    end
+    maplist = zeros(size(L1.sat_list)) ;    
+    for n=1:length(L1.sat_list)
+        k = find(sat_list==L1.sat_list(n),1) ;
+        if isempty(k)
+            error('can`t resolve sattelite list\n') ;
+        end
+        maplist(n) = k ;
+        if maplist(n)~=n
+            rbldFlag = 1 ;
+        end
+    end
+    if rbldFlag
+        % rebuild sattelite list and corresponded vectors
+        sat_list = L1.sat_list ;
+        numSat = length(sat_list) ; % number of sattelites available 
+        Eph = Eph(:,maplist) ;
+        Eph(1,:) = 1:numSat ;
+        prMesA = prMesA(maplist) ;
+        prMesB = prMesB(maplist) ;
+        cpMesA = cpMesA(maplist) ;
+        cpMesB = cpMesB(maplist) ;
+    end
+    
+    addpath(easyLib) ;
+    [A_pos, ~, ~, A_basic_obs] = recpo_ls(prMesA(:),(1:numSat)', measurementTime, Eph ) ;
+    rmpath(easyLib) ;
+    satPos = A_basic_obs(:,1:3) ;
+    % compute Esv matrix
+    % each row is union vector e corresponded to n-th sattelite
+    Esv = satPos - repmat(A_pos(1:3).',numSat,1) ;
+    for s=1:numSat
+        Esv(s,:) = Esv(s,:)/norm(Esv(s,:),2) ;
+    end
+    
 end
 
 x = L1.x ;

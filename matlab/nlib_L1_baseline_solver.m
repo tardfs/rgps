@@ -6,7 +6,7 @@ BL = 0 ; % number of baselines computed
 N = length(measurmentsA) ; % number of receiver A measurements
 K = length(measurmentsB) ; % number of receiver B measurements
 
-baseline_data = zeros(5,max(N,K)) ;
+baseline_data = zeros(5,min(N,K)) ;
 
 L1_state = [] ;
 

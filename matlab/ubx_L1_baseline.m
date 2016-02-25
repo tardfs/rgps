@@ -17,6 +17,13 @@ ubx_geodetic_B = ubxGeodetic ;
 fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
+cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
 baseline_data = nlib_L1_baseline_solver(fout, measurments_A, measurments_B) ;
+
+hold off ,
+plot((cbaseline_data(1,1:1000)-cbaseline_data(1,1))/60, cbaseline_data(2,1:1000)) ;
+hold on,
+plot((baseline_data(1,1:1000)-baseline_data(1,1))/60, baseline_data(2,1:1000),'r-') ;
+xlabel('sec') ;
 
 fclose(fout) ;
