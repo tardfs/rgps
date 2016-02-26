@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function baseline_data = nlib_L1_baseline_solver(fout, measurmentsA, measurmentsB)
+function [baseline_data, x_data, P_data] = nlib_L1_baseline_solver(fout, measurmentsA, measurmentsB)
 
 BL = 0 ; % number of baselines computed
 
@@ -7,6 +7,13 @@ N = length(measurmentsA) ; % number of receiver A measurements
 K = length(measurmentsB) ; % number of receiver B measurements
 
 baseline_data = zeros(5,min(N,K)) ;
+% 1 - time
+% 2:4 - baseline x,y,z
+% 5 - reserved (GDOP)
+
+x_data = zeros(7,min(N,K)) ;
+P_data = zeros(7,min(N,K)) ;
+
 
 L1_state = [] ;
 
@@ -73,7 +80,14 @@ for n=1:N
 
             baseline_data(1, BL) = measurementTime ;
             baseline_data(2:4, BL) = L1_state.x(1:3) ;
+            
+            x_data(1:length(L1_state.x), BL)  = L1_state.x ;
+            P_data(1:length(L1_state.x), BL) = diag(L1_state.P) ;
         end
         
     end
 end
+
+baseline_data = baseline_data(:,1:BL) ;
+x_data = x_data(:,1:BL) ;
+P_data = P_data(:,1:BL) ;

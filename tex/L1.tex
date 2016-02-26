@@ -5,7 +5,9 @@
 \usepackage[russian]{babel}
 \usepackage[cmex10]{amsmath}
 \usepackage{amsfonts}
-%\usepackage{pscyr}
+\usepackage{hyperref}
+\usepackage{pscyr}
+\usepackage[pdftex]{graphicx}
 %\usepackage{fancyhdr}
 %\pagestyle{fancy}
 \renewcommand{\rmdefault}{fjn}
@@ -222,7 +224,21 @@ H =
 \end{bmatrix}
 \end{equation}
 
-
+\begin{figure}[h]
+\centering
+\includegraphics{kalman_ecef_vars.png}
+\caption{ƒисперси€ относительных координат}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics{kalman_dd_vars.png}
+\caption{ƒисперси€ вторых разностей}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics{comstock_vars.png}
+\caption{Comstock}
+\end{figure}
 
 
 \begin{thebibliography}{1}
@@ -231,6 +247,8 @@ Development of a Low-Latency, High Data Rate, Differential GPS Relative Position
 UAV Formation Flight control. {\em THESIS Presented to the Faculty Department of Electrical and Computer 
 Engineering Graduate School of Engineering and Management Air Force Institute of Technology}, 2006.
 \bibitem{Welch} Greg Welch, Gary Bishop, An Introduction to the Kalman Filter. ACM-2001. ACM Inc.
+\bibitem{LambdaFAQ} Peter Joosten, Christian Tiberius, Lambda: FAQs. - GPS Solutions (2002) 6:109Ц114. http://www.utdallas.edu/~aiken/GPSCLASS/lambdaambigfulltext.pdf
+\bibitem{Tiberius} Paul de Jonge, Tiberius C. The LAMBDA method for integer ambiguity estimation:implementation aspects. http://www.citg.tudelft.nl
 \end{thebibliography}
 \end{document}
 

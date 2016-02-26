@@ -30,7 +30,7 @@ if isempty(L1)
     dt = 2 ;                % time step, sec
     
     % initial values 
-    sigma2_ecef =     5 ;   % $\sigma^2_{\Delta X}$ - initial variance of relative position
+    sigma2_ecef =     10 ;%5 ;   % $\sigma^2_{\Delta X}$ - initial variance of relative position
     sigma2_dN =  50 ;       % $\sigma^2_{\Delta\nabla\phi^{12}_{AB}}$ - initial 
                             % variance of double difference carrier phase
                             % measurements
@@ -177,7 +177,9 @@ P = F*P*F' + Qd ;
 
 % ambiguity resolution
 addpath(easyLib) ;
-y = lambda(x(4:end), P(4:end,4:end)) ;
+%[a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
+%x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,1)) ;
+%x(4:end) = a(:,1) ;
 rmpath(easyLib) ;
 
 % get measurement vector z
