@@ -30,11 +30,11 @@ if isempty(L1)
     dt = 2 ;                % time step, sec
     
     % initial values 
-    sigma2_ecef =     10 ;%5 ;   % $\sigma^2_{\Delta X}$ - initial variance of relative position
+    sigma2_ecef =     5 ;   % $\sigma^2_{\Delta X}$ - initial variance of relative position
     sigma2_dN =  50 ;       % $\sigma^2_{\Delta\nabla\phi^{12}_{AB}}$ - initial 
                             % variance of double difference carrier phase
                             % measurements
-    qp = 15 ;
+    qp = 30 ;
     qN = 1.1e-2 ;
     
     ra = 10.24 ;            % code variance
