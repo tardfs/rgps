@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function [baseline_data, x_data, P_data] = nlib_L1_baseline_solver(fout, measurmentsA, measurmentsB)
+function [baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(fout, measurmentsA, measurmentsB)
 
 BL = 0 ; % number of baselines computed
 
@@ -13,6 +13,7 @@ baseline_data = zeros(5,min(N,K)) ;
 
 x_data = zeros(7,min(N,K)) ;
 P_data = zeros(7,min(N,K)) ;
+z_data = zeros(8,min(N,K)) ;
 
 
 L1_state = [] ;
@@ -37,6 +38,8 @@ for n=1:N
         recvB_msr = measurmentsB{p} ;
         TowB = recvB_msr{1}.msrTow ;
         if round(TowA)==round(TowB)
+            fprintf(fout,'Delta t:%f\n', TowA-TowB ) ;
+%        if TowA==TowB
             k = p ;
             break ;
         end
@@ -83,6 +86,8 @@ for n=1:N
             
             x_data(1:length(L1_state.x), BL)  = L1_state.x ;
             P_data(1:length(L1_state.x), BL) = diag(L1_state.P) ;
+
+            z_data(:, BL) = L1_state.z ;
         end
         
     end
@@ -91,3 +96,4 @@ end
 baseline_data = baseline_data(:,1:BL) ;
 x_data = x_data(:,1:BL) ;
 P_data = P_data(:,1:BL) ;
+z_data = z_data(:,1:BL) ;

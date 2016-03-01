@@ -192,6 +192,7 @@ for n=2:numSat
     zphi(n-1) = dphi_AB_1 - (cpMesA(n)-cpMesB(n)) ;
 end
 z = [zrho;zphi] ;
+L1.z = z ;
 
 % correction stage
 K = P*H'*inv(H*P*H'+R) ;

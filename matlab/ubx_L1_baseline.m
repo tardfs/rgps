@@ -18,13 +18,13 @@ fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
-[baseline_data, x_data, P_data] = nlib_L1_baseline_solver(fout, measurments_A, measurments_B) ;
+[baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(fout, measurments_A, measurments_B) ;
 
 figure(1) ;
 hold off ,
-plot((cbaseline_data(1,1:1000)-cbaseline_data(1,1))/60, cbaseline_data(2,1:1000)) ;
+plot((cbaseline_data(1,:)-cbaseline_data(1,1))/60, cbaseline_data(2,:)) ;
 hold on,
-plot((baseline_data(1,1:1000)-baseline_data(1,1))/60, baseline_data(2,1:1000),'r-') ;
+plot((baseline_data(1,:)-baseline_data(1,1))/60, baseline_data(2,:),'r-') ;
 xlabel('sec') ;
 
 figure(2) ;
@@ -50,6 +50,34 @@ legend(...
 ylabel('m^2') ;
 grid on ;
 title([recv1File,', ', recv2File]) ;
+
+figure(4) ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', 'Code Double Difference' ) ;
+hold off, plot(z_data(1:4,:)') ;
+set(gca,'FontSize',14) ;
+xlabel('epoch #') ;
+ylabel('\Delta\nabla\rho^{ij_{AB}}') ;
+title(sprintf('Std(\\Delta\\nabla\\rho^{ij_{AB}}):%5.3f m', mean(std(z_data(1:4,:),[],2)))) ;
+legend('\Delta\nabla\rho^{12}_{AB}','\Delta\nabla\rho^{13}_{AB}',...
+    '\Delta\nabla\rho^{14}_{AB}','\Delta\nabla\rho^{15}_{AB}') ;
+grid on ;
+
+figure(5) ;
+minutesScale = (baseline_data(1,:)-baseline_data(1,1))/60 ;
+visData = z_data(8,:).' ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', 'Phase Double Differences' ) ;
+hold off, plot(minutesScale,visData*lambda1) ;
+set(gca,'FontSize',14) ;
+xlabel('minutes') ;
+ylabel('\Delta\nabla\phi^{ij_{AB}}, m') ;
+std_phi = mean(std(visData,[],1)) ;
+title(sprintf('Std(\\Delta\\nabla\\phi^{ij_{AB}}):%5.3f cycles (%5.3f m)', std_phi, std_phi*lambda1 )) ;
+legend('\Delta\nabla\phi^{15}_{AB}','\Delta\nabla\phi^{13}_{AB}',...
+    '\Delta\nabla\phi^{14}_{AB}','\Delta\nabla\phi^{15}_{AB}') ;
+grid on ;
+
 
 
 fclose(fout) ;
