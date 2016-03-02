@@ -2,8 +2,8 @@ clc ;
 
 fout = fopen('ubx_L1_out.txt','w+t') ;
 
-recv1File = '..\data\RS_matv_50mm_01.mat' ;
-recv2File = '..\data\RS_matv_50mm_02.mat' ;
+recv1File = '..\data\RS_twin_300mm_01.mat' ;
+recv2File = '..\data\RS_twin_300mm_02.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
 load(recv1File) ;
 measurments_A = measurments_queue ;

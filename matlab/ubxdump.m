@@ -15,8 +15,8 @@ ubxGeodeticCount = 0 ;
 ubxGeodetic = zeros(7,1000) ;
 clc ;
 % clear all ;
-outFile = '..\data\RS_matv_50mm_02.mat' ;
-f = fopen('..\data\RS_matv_50mm_02.bin','r') ; % ..\data\rs_004.bin
+outFile = '..\data\RS_twin_300mm_02.mat' ;
+f = fopen('..\data\RS_twin_300mm_02.bin','r') ; % ..\data\rs_004.bin
 fout = fopen('ubx_out.txt','w+t') ;
 n_show=0 ;
 n_eph_t = 0 ;
@@ -382,8 +382,9 @@ if f~=-1
                                             % gate to Denis Akos code
                                             akos_eph = make_akos_eph(s_eph) ;
                                             [satPositions, satClkCorr] = satpos(rcvTow, 1, akos_eph) ;
-                                            settings.c    = 299792458 ;    % The speed of light, [m/s]
+                                            %settings.c    = 299792458 ;    % The speed of light, [m/s]
                                             s_msr.prMes = prMes ; %+ satClkCorr * settings.c ;
+                                            s_msr.cpMes = cpMes ;
                                             s_msr.sat_x = satPositions(1) ;
                                             s_msr.sat_y = satPositions(2) ;
                                             s_msr.sat_z = satPositions(3) ;
@@ -752,6 +753,7 @@ function sattelite=on_sf3(fout,inp_bits,sattelite)
         s_msr.week = 0 ;
         s_msr.leapS = 0 ;
         s_msr.prMes = 0 ;
+        s_msr.cpMes = 0 ;
         s_msr.satTow = 0 ;
         s_msr.sat_x = 0 ;
         s_msr.sat_y = 0 ;
