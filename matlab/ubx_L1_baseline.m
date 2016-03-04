@@ -1,16 +1,22 @@
 clc ;
 
+settings.recv1File = '..\data\RS_matv_50mm_01.mat' ;
+settings.recv2File = '..\data\RS_matv_50mm_02.mat' ;
+settings.v_light = 299792458 ;	     % vacuum speed of light m/s
+settings.check_for_time_sync = 1 ;
+settings.timeSyncTol = 1 ; % Synchronization tolerance
+settings.minSatNum = 5 ;
+settings.maxSatNum = 20 ;
+
 fout = fopen('ubx_L1_out.txt','w+t') ;
 
-recv1File = '..\data\RS_twin_300mm_01.mat' ;
-recv2File = '..\data\RS_twin_300mm_02.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
-load(recv1File) ;
+load(settings.recv1File) ;
 measurments_A = measurments_queue ;
 ubx_ecef_A = ubxEcef ;
 ubx_geodetic_A = ubxGeodetic ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver B data...') ;
-load(recv2File) ;
+load(settings.recv2File) ;
 measurments_B = measurments_queue ;
 ubx_ecef_B = ubxEcef ;
 ubx_geodetic_B = ubxGeodetic ;
@@ -18,7 +24,7 @@ fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
-[baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(fout, measurments_A, measurments_B) ;
+[baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B) ;
 
 figure(1) ;
 hold off ,
@@ -33,7 +39,7 @@ set(gca,'FontSize',14) ;
 legend('\sigma_x','\sigma_y','\sigma_z') ;
 grid on ;
 ylabel('m^2') ;
-title([recv1File,', ', recv2File]) ;
+title([settings.recv1File,', ', settings.recv2File]) ;
 
 figure(3) ;
 f1 = 154*10.23e6 ;		     % L1 frequency, Hz
@@ -49,7 +55,7 @@ legend(...
     ) ;
 ylabel('m^2') ;
 grid on ;
-title([recv1File,', ', recv2File]) ;
+title([settings.recv1File,', ', settings.recv2File]) ;
 
 figure(4) ;
 set(gcf,'NumberTitle','off') ;

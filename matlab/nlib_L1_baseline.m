@@ -1,4 +1,4 @@
-function L1 = nlib_L1_baseline(fout, L1, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB)
+function L1 = nlib_L1_baseline(fout, L1, settings, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB)
 
 % some physical constants
 v_light = 299792458 ;	     % vacuum speed of light m/s
@@ -12,7 +12,7 @@ easyLib = getFullPath('..\\easy') ;
 fprintf(fout,'<L1_BASELINE><time: %d>\n', measurementTime ) ;
 
 numSat = length(sat_list) ; % number of sattelites available 
-if numSat<5
+if numSat<settings.minSatNum
     fprintf(fout, '<Error!> [nlib_L1_baseline]: not enought sattelites.\n') ;
     return ;
 end
@@ -132,7 +132,9 @@ else
     for n=1:length(L1.sat_list)
         k = find(sat_list==L1.sat_list(n),1) ;
         if isempty(k)
-            error('can`t resolve sattelite list\n') ;
+            disp(L1.sat_list) ;
+            disp(sat_list) ;
+            error('can`t resolve sattelite list\n') ;            
         end
         maplist(n) = k ;
         if maplist(n)~=n
