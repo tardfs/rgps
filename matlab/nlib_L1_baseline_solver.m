@@ -58,8 +58,17 @@ if settings.check_for_time_sync
     set(gca,'FontSize',14) ;
     grid on ;
     xlabel('Time, sec') ;
-    ylabel('Light travel, m') ;
-    title('A-B Time mismatch in terms of correpsonded light travel') ;
+    ylabel(sprintf('Light travel, m (1ms:%3.2f m)', settings.v_light*1e-3 )) ;
+    title(sprintf('A-B Time mismatch: %s', settings.recv1File )) ;
+    
+    figure(21) ;
+    hold off , plot(recvA_Tow_v(2:end)-recvA_Tow_v(1:end-1), 'LineWidth',2) ;
+    hold on ,  plot(recvB_Tow_v(2:end)-recvB_Tow_v(1:end-1), 'r-','LineWidth',2) ;
+    title(sprintf('A & B Time step: %s', settings.recv1File )) ;
+    legend('A time step', 'B time step') ;
+    set(gca,'FontSize',14) ;
+    grid on ;
+    
     c=input('Proceed with relative coordinates: [Y/N]?','s') ;
     if isempty(c)
         c = 'Y' ;
