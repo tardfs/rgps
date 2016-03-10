@@ -26,7 +26,7 @@ end
 rmpath(settings.easyLib) ;
 
 
-function [ux,uy,uz,gdop] = easy_pvt_solver(measurments_queue)
+function [ux,uy,uz,gdop,sat_map] = easy_pvt_solver(measurments_queue)
 
 numSat = length(measurments_queue) ;
 obs = zeros(numSat,1) ;
@@ -41,7 +41,15 @@ end
 
 satPos = basic_obs(:,1:3) ;
 
-[Az, El, D] = topocent(easy_pos(1:3),satPos(1,:).'-easy_pos(1:3)) ;
+sat_map = zeros(numSat,4) ;
+for n=1:numSat
+    [Az, El, D] = topocent(easy_pos(1:3),satPos(n,:).'-easy_pos(1:3)) ;
+    sat_map(n, 1) = measurments_queue{n}.svId ;
+    sat_map(n, 2) = Az ;
+    sat_map(n, 3) = El ;
+end
+
+error(-1)
 
 %[phi,lambda,h] = togeod(6378137,298.257223563,easy_pos(1),easy_pos(2),easy_pos(3)) ;
 
