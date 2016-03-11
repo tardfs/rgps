@@ -2,7 +2,7 @@ function nlib_plot_sats
 
 settings.easyLib = getFullPath('..\\easy') ;
 
-settings.recv1File = '..\data\RS_matv_50mm_01.mat' ;
+settings.recv1File = '..\data\RS_matv_1400mm_680mm_01.mat ' ;
 
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
 load(settings.recv1File) ;
@@ -17,14 +17,39 @@ addpath(settings.easyLib) ;
 
 N = length(measurmentsA) ;
 easy_data = zeros(5,N) ;
+sMap = zeros(32,N) ;
+Az = zeros(32,N) ;
+El = zeros(32,N) ;
 for idx1=1:N
     recv1_msr_set = measurmentsA{idx1} ;
-    [ux,uy,uz,gdop ] = easy_pvt_solver( recv1_msr_set) ;
+    [ux,uy,uz,gdop, sat_map ] = easy_pvt_solver( recv1_msr_set) ;
     easy_data(:,idx1) = [recv1_msr_set{1}.msrTow; ux;uy;uz; gdop(1)] ;
+    satIds = sat_map(:,1) ;
+    sMap(satIds,idx1) = 1 ;
+    Az(satIds,idx1) = sat_map(:,2) ;
+    El(satIds,idx1) = sat_map(:,3) ;
 end
 
 rmpath(settings.easyLib) ;
 
+save('satMap','sMap','Az','El') ;
+
+hold off,
+for s=1:32
+    satAz = Az(s,sMap(s,:)~=0)/180*pi ;
+    satEl = El(s,sMap(s,:)~=0)/180*pi ;
+    if ~isempty(satAz)
+        h= polar( satAz, cos(satEl) ) ;
+        set(h,'LineWidth',2,'Color',[0.2 0.4 0.9]) ;
+        hold on ,
+        h = polar( satAz(end), cos(satEl(end)), 'rs' ) ;
+        set(h,'MarkerSize',14) ;
+        [xt,yt] = pol2cart(satAz(end), cos(satEl(end))) ;
+        text(xt,yt,sprintf('%1d',s),'HorizontalAlignment','Center','FontSize',12) ;
+    end
+end
+set(gca,'FontSize',14)
+title(sprintf('Карта движения спутников %s', settings.recv1File )) ;
 
 function [ux,uy,uz,gdop,sat_map] = easy_pvt_solver(measurments_queue)
 
@@ -48,8 +73,6 @@ for n=1:numSat
     sat_map(n, 2) = Az ;
     sat_map(n, 3) = El ;
 end
-
-error(-1)
 
 %[phi,lambda,h] = togeod(6378137,298.257223563,easy_pos(1),easy_pos(2),easy_pos(3)) ;
 
