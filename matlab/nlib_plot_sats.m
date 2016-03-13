@@ -1,16 +1,17 @@
-function nlib_plot_sats 
+function [Az, El, sMap] = nlib_plot_sats(settings,measurmentsA)
 
-settings.easyLib = getFullPath('..\\easy') ;
+%settings.easyLib = getFullPath('..\\easy') ;
+%settings.gnssLib = getFullPath('..\\softgnss') ;
 
-settings.recv1File = '..\data\RS_matv_1400mm_680mm_01.mat ' ;
+%settings.recv1File = '..\data\RS_matv_1400mm_680mm_01.mat ' ;
 
-fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
-load(settings.recv1File) ;
+%fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
+%load(settings.recv1File) ;
 
-measurmentsA = measurments_queue ;
+%measurmentsA = measurments_queue ;
 
-fprintf(repmat('\b',1,160)) ;
-fprintf('\n') ;
+%fprintf(repmat('\b',1,160)) ;
+%fprintf('\n') ;
 
 
 addpath(settings.easyLib) ;
@@ -28,28 +29,33 @@ for idx1=1:N
     sMap(satIds,idx1) = 1 ;
     Az(satIds,idx1) = sat_map(:,2) ;
     El(satIds,idx1) = sat_map(:,3) ;
+    
+%    addpath(settings.gnssLib) ;
+%    skyPlot(sat_map(:,2),sat_map(:,3),satIds) ;
+%    rmpath(settings.gnssLib) ;
+    
 end
 
 rmpath(settings.easyLib) ;
 
-save('satMap','sMap','Az','El') ;
+nlib_skyplot( Az, El, sMap ) ;
 
-hold off,
-for s=1:32
-    satAz = Az(s,sMap(s,:)~=0)/180*pi ;
-    satEl = El(s,sMap(s,:)~=0)/180*pi ;
-    if ~isempty(satAz)
-        h= polar( satAz, cos(satEl) ) ;
-        set(h,'LineWidth',2,'Color',[0.2 0.4 0.9]) ;
-        hold on ,
-        h = polar( satAz(end), cos(satEl(end)), 'rs' ) ;
-        set(h,'MarkerSize',14) ;
-        [xt,yt] = pol2cart(satAz(end), cos(satEl(end))) ;
-        text(xt,yt,sprintf('%1d',s),'HorizontalAlignment','Center','FontSize',12) ;
-    end
-end
-set(gca,'FontSize',14)
-title(sprintf('Карта движения спутников %s', settings.recv1File )) ;
+% hold off,
+% for s=1:32
+%     satAz = Az(s,sMap(s,:)~=0)/180*pi ;
+%     satEl = El(s,sMap(s,:)~=0)/180*pi ;
+%     if ~isempty(satAz)
+%         h= polar( satAz, cos(satEl) ) ;
+%         set(h,'LineWidth',2,'Color',[0.2 0.4 0.9]) ;
+%         hold on ,
+%         h = polar( satAz(end), cos(satEl(end)), 'rs' ) ;
+%         set(h,'MarkerSize',14) ;
+%         [xt,yt] = pol2cart(satAz(end), cos(satEl(end))) ;
+%         text(xt,yt,sprintf('%1d',s),'HorizontalAlignment','Center','FontSize',12) ;
+%     end
+% end
+% set(gca,'FontSize',14)
+% title(sprintf('Карта движения спутников %s', settings.recv1File )) ;
 
 function [ux,uy,uz,gdop,sat_map] = easy_pvt_solver(measurments_queue)
 

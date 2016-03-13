@@ -1,12 +1,18 @@
 clc ;
 
+settings.easyLib = getFullPath('..\\easy') ;
+settings.gnssLib = getFullPath('..\\softgnss') ;
 settings.recv1File = '..\data\RS_matv_50mm_01.mat' ;
 settings.recv2File = '..\data\RS_matv_50mm_02.mat' ;
 settings.v_light = 299792458 ;	     % vacuum speed of light m/s
 settings.check_for_time_sync = 1 ;
-settings.timeSyncTol = 1 ; % Synchronization tolerance
+settings.timeSyncTol = 1e-3 ; % Synchronization tolerance
 settings.minSatNum = 5 ;
 settings.maxSatNum = 20 ;
+settings.enableSvId = [1,4,8,14,19,22,32] ;
+[~,settings.fnameA] = fileparts( settings.recv1File ) ;
+[~,settings.fnameB] = fileparts( settings.recv2File ) ;
+
 
 fout = fopen('ubx_L1_out.txt','w+t') ;
 
@@ -23,6 +29,9 @@ ubx_geodetic_B = ubxGeodetic ;
 fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
+% get precise A position
+mean_ecef_A = nlib_mean_ecef(nlib_easy_ecef_solver( measurments_A )) ;
+
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
 [baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B) ;
 
@@ -31,6 +40,14 @@ hold off ,
 plot((cbaseline_data(1,:)-cbaseline_data(1,1))/60, cbaseline_data(2,:)) ;
 hold on,
 plot((baseline_data(1,:)-baseline_data(1,1))/60, baseline_data(2,:),'r-') ;
+hold off, 
+plot((baseline_data(1,:)-baseline_data(1,1))/60, nlib_ecef_norm2(baseline_data),'r-') ;
+hold off, 
+plot(baseline_data(2:4,:).','LineWidth',2) ;
+set(gca,'FontSize',14) ;
+ylabel('m') ;
+grid on ;
+title(['ECEF x-y-z: ',settings.fnameA,'<->', settings.fnameB],'interpreter','none') ;
 xlabel('sec') ;
 
 figure(2) ;
@@ -84,6 +101,17 @@ legend('\Delta\nabla\phi^{15}_{AB}','\Delta\nabla\phi^{13}_{AB}',...
     '\Delta\nabla\phi^{14}_{AB}','\Delta\nabla\phi^{15}_{AB}') ;
 grid on ;
 
-
+figure(6) ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', 'UTM relative coordinates' ) ;
+addpath(settings.easyLib) ;
+utm_data = nlib_ecef_to_utm(mean_ecef_A, baseline_data) ;
+rmpath(settings.easyLib) ;
+plot( utm_data(2,:), utm_data(3,:), 'LineWidth',2 ) ;
+set(gca,'FontSize',14) ;
+xlabel('UTM east, m') ;
+ylabel('UTM north, m') ;
+grid on ;
+title(['UTM East-North: ',settings.fnameA,'-', settings.fnameB],'interpreter','none') ;
 
 fclose(fout) ;

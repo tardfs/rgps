@@ -50,21 +50,24 @@ for n=1:N
 end
 
 if settings.check_for_time_sync
+
     figure(20) ;
     set(gcf,'NumberTitle','off') ;
     set(gcf,'Name', 'A-B Time mismatch' ) ; 
     hold off, 
-    plot((recvA_Tow_v-recvA_Tow_v(1))/60, AB_time_err*settings.v_light,'LineWidth',2) ;
+    %plot((recvA_Tow_v-recvA_Tow_v(1))/60, AB_time_err*settings.v_light,'LineWidth',2) ;
+    plot(AB_time_err*settings.v_light,'LineWidth',2) ;
     set(gca,'FontSize',14) ;
     grid on ;
     xlabel('Time, sec') ;
-    ylabel(sprintf('Light travel, m (1ms:%3.2f m)', settings.v_light*1e-3 )) ;
-    title(sprintf('A-B Time mismatch: %s', settings.recv1File )) ;
+    %ylabel(sprintf('Light travel, m (1ms:%3.2f m)', settings.v_light*1e-3 )) ;
+    ylabel('ms') ;
+    title(sprintf('A-B Time mismatch: %s', settings.fnameA )) ;
     
     figure(21) ;
     hold off , plot(recvA_Tow_v(2:end)-recvA_Tow_v(1:end-1), 'LineWidth',2) ;
     hold on ,  plot(recvB_Tow_v(2:end)-recvB_Tow_v(1:end-1), 'r-','LineWidth',2) ;
-    title(sprintf('A & B Time step: %s', settings.recv1File )) ;
+    title(sprintf('A & B Time step: %s', settings.fnameA )) ;
     legend('A time step', 'B time step') ;
     set(gca,'FontSize',14) ;
     grid on ;
@@ -76,9 +79,37 @@ if settings.check_for_time_sync
     if c~='Y' && c~='y'
         return ;
     end
+    
+    startIndex = input('Index from:') ;
+    if startIndex<1 || startIndex>N
+        startIndex = 1 ;
+    end
+    endIndex = input('Index to:') ;
+    if endIndex<1 || endIndex>N
+        endIndex = N ;
+    end
+    
+    figure(22),
+    set(gcf,'NumberTitle','off') ;
+    set(gcf,'Name', sprintf('File %s,range: %d..%d', settings.fnameA, startIndex, endIndex ) ) ; 
+
+    subplot(221),
+    [~, ~, sMapA] = nlib_plot_sats(settings, measurmentsA(startIndex:endIndex)) ;
+    title( sprintf('%s,range: %d..%d', settings.fnameA, startIndex, endIndex ),'interpreter','none')  ;
+    subplot(223),
+    nlib_sat_timeline(1+sMapA*100)
+
+    subplot(222),
+    [~, ~, sMapB] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
+    title( sprintf('%s,range: %d..%d', settings.fnameB, AB_n2k(startIndex), AB_n2k(endIndex) ),'interpreter','none' ) ;
+    subplot(224),
+    nlib_sat_timeline(1+sMapB*100)
+    
+    pause ;
+    
 end
 
-for n=1:N
+for n=startIndex:endIndex    
     recvA_msr = measurmentsA{n} ;
     % get rcvA measurement time
     TowA = recvA_msr{1}.msrTow ;
@@ -109,22 +140,24 @@ for n=1:N
         NUMSAT = 0 ;
         % proceed with sattelite list
         for g=1:length(recvA_msr)
-            s1 = -1 ;
-            for s=1:length(recvB_msr)
-                if recvA_msr{g}.svId==recvB_msr{s}.svId
-                    % found the same sattelite for receiver B
-                    s1 = s ;
-                    break ;
+            if nnz(recvA_msr{g}.svId==settings.enableSvId)>0
+                s1 = -1 ;
+                for s=1:length(recvB_msr)
+                    if recvA_msr{g}.svId==recvB_msr{s}.svId
+                        % found the same sattelite for receiver B
+                        s1 = s ;
+                        break ;
+                    end
                 end
-            end
-            if s1>0 && NUMSAT<settings.maxSatNum
-                NUMSAT = NUMSAT + 1 ;
-                sat_list(NUMSAT) = recvA_msr{g}.svId ;
-                prMesA(NUMSAT) = recvA_msr{g}.prMes ;
-                prMesB(NUMSAT) = recvB_msr{s1}.prMes ;
-                cpMesA(NUMSAT) = recvA_msr{g}.cpMes ;
-                cpMesB(NUMSAT) = recvB_msr{s1}.cpMes ;
-                Eph(:,NUMSAT) = eph2easy(recvA_msr{g}.s_eph, NUMSAT ) ;
+                if s1>0 && NUMSAT<settings.maxSatNum
+                    NUMSAT = NUMSAT + 1 ;
+                    sat_list(NUMSAT) = recvA_msr{g}.svId ;
+                    prMesA(NUMSAT) = recvA_msr{g}.prMes ;
+                    prMesB(NUMSAT) = recvB_msr{s1}.prMes ;
+                    cpMesA(NUMSAT) = recvA_msr{g}.cpMes ;
+                    cpMesB(NUMSAT) = recvB_msr{s1}.cpMes ;
+                    Eph(:,NUMSAT) = eph2easy(recvA_msr{g}.s_eph, NUMSAT ) ;
+                end
             end
         end
         if NUMSAT>=settings.minSatNum
