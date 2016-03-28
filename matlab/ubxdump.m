@@ -15,8 +15,8 @@ ubxGeodeticCount = 0 ;
 ubxGeodetic = zeros(7,1000) ;
 clc ;
 % clear all ;
-outFile = '..\data\RS_matv_close90_02.mat' ;
-f = fopen('..\data\RS_matv_close90_02.bin','r') ; % ..\data\rs_004.bin
+outFile = '..\data\RS_twin_15mm_02.mat' ;
+f = fopen('..\data\RS_twin_15mm_02.bin','r') ; % ..\data\rs_004.bin
 fout = fopen('ubx_out.txt','w+t') ;
 n_show=0 ;
 n_eph_t = 0 ;
