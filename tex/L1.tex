@@ -224,6 +224,47 @@ H =
 \end{bmatrix}
 \end{equation}
 
+Матрица $H$ в англ. источниках называется observation matrix, line-of-sight matrix, 
+matrix of partials, geometry matrix, design matrix, measurements sensitivity matrix или даже Jacobi Matrix.
+
+В документе \cite{Comstock}, стр.45 конкретно указано: "The Kalman filter provides several useful outputs. 
+First, the floating point \textbf{carrier-phase ambiguity estimates}, as well as the covariance matrix, are
+fed to the LAMBDA ambiguity resolution task. Second, the \textbf{unit line-of-sight vector} to each of the SVs 
+is fed to the high-rate output task. Finally, the Kalman filter provides a low rate (1 Hertz), 
+\textbf{\underline{approximate} relative position} which is independent of the computations performed by the 
+high-rate output task. This provides a means of validating the high-rate output since a direct comparison 
+is possible".
+
+Важным является утверждение, что разностные координаты взятые непосредственно из вектора состояния 
+являются грубой оценкой. Для точного оценивания используется дополнительная процедура (High-rate task). 
+
+Еще одно важное замечание: скорее всего фильтр Калмана сам по себе не вычисляет unit line-of-sight vector. Скорее
+всего эти вектора вычисляются внутри процедуры calc\_sv\_pos (см. стр. 127 в \cite{Comstock}). 
+
+Перед вызовом high-rate task необходимо устранить неопределенность фазовых измерений 
+(\cite{Comstock}, стр.46): 
+"The second task, an ambiguity resolution routine, is summoned by the Kalman
+filter when required. The Kalman filter can only provide a floating point estimate
+of the double-difference carrier-phase ambiguities. As previously discussed, these
+floating point estimates must be resolved to their integer values in order for the
+high-rate output to achieve the desired level of precision. The LAMBDA method,
+mentioned briefly in Chapter 2, is used to perform this ambiguity resolution. The
+LAMBDA method requires as input the floating point estimates of the ambiguity
+values as well as the associated covariance matrix. Both of these are provided by
+the Kalman filter task. The ambiguity resolution task provides as output a vector
+of the integer ambiguities to the high-rate output task which is discussed next. Of
+note, after the integer ambiguities have been initially determined, the high-rate task
+is able to determine the correct integer ambiguities for newly acquired SVs. However,
+if too many SVs are lost at a single epoch, the Kalman filter has the ability to pass
+the required data to the ambiguity resolution routine and re-calculate the complete
+ambiguity set. This will be discussed in much greater detail later in the chapter."
+
+Результаты работы процедуры устранения неоднозначности позволяют 
+пересчитать вектор фазовых измерений \cite{Tiberius}, стр.15, формула 2.7:
+\begin{equation}
+b = \hat{b} - Q_{t} Q_a^{-1} (\hat{a}-a)
+\end{equation}
+
 \begin{figure}[h]
 \centering
 \includegraphics{kalman_ecef_vars.png}
