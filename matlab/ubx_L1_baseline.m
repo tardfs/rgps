@@ -2,14 +2,17 @@ clc ;
 
 settings.easyLib = getFullPath('..\\easy') ;
 settings.gnssLib = getFullPath('..\\softgnss') ;
-settings.recv1File = '..\data\RS_matv_50mm_01.mat' ;
-settings.recv2File = '..\data\RS_matv_50mm_02.mat' ;
+settings.recv1File = '..\data\RS_twin_15mm_01.mat' ;
+settings.recv2File = '..\data\RS_twin_15mm_02.mat' ;
 settings.v_light = 299792458 ;	     % vacuum speed of light m/s
 settings.check_for_time_sync = 1 ;
 settings.timeSyncTol = 1e-3 ; % Synchronization tolerance
 settings.minSatNum = 5 ;
 settings.maxSatNum = 20 ;
-settings.enableSvId = [1,4,8,14,19,22,32] ;
+%settings.enableSvId = [1,4,8,14,19,22,32] ; % matv_50mm 1040..1140
+%settings.enableSvId = [4,8,11,14,19,22,32] ; % RS_matv_1400mm_680mm 50..150
+%settings.enableSvId = [15,16,18,21,22,27] ; % RS_matv_2000mm 570..720
+settings.enableSvId = [] ; % RS_matv_400mm 50..150
 [~,settings.fnameA] = fileparts( settings.recv1File ) ;
 [~,settings.fnameB] = fileparts( settings.recv2File ) ;
 
@@ -41,8 +44,6 @@ plot((cbaseline_data(1,:)-cbaseline_data(1,1))/60, cbaseline_data(2,:)) ;
 hold on,
 plot((baseline_data(1,:)-baseline_data(1,1))/60, baseline_data(2,:),'r-') ;
 hold off, 
-plot((baseline_data(1,:)-baseline_data(1,1))/60, nlib_ecef_norm2(baseline_data),'r-') ;
-hold off, 
 plot(baseline_data(2:4,:).','LineWidth',2) ;
 set(gca,'FontSize',14) ;
 ylabel('m') ;
@@ -72,7 +73,7 @@ legend(...
     ) ;
 ylabel('m^2') ;
 grid on ;
-title([settings.recv1File,', ', settings.recv2File]) ;
+title([settings.recv1File,', ', settings.recv2File], 'interpreter', 'none') ;
 
 figure(4) ;
 set(gcf,'NumberTitle','off') ;
@@ -115,5 +116,26 @@ xlabel('UTM east, m') ;
 ylabel('UTM north, m') ;
 grid on ;
 title(['UTM East-North: ',settings.fnameA,'-', settings.fnameB],'interpreter','none') ;
+
+figure(7) ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', 'Estimated distance using ECEF' ) ;
+hold off, 
+plot((baseline_data(1,:)-baseline_data(1,1))/60, nlib_ecef_norm2(baseline_data),'r-','LineWidth',2) ;
+set(gca,'FontSize',14) ;
+xlabel('time, sec') ;
+ylabel('Distance, m') ;
+grid on ;
+title(['ECEF D: ',settings.fnameA,'-', settings.fnameB],'interpreter','none') ;
+
+figure(8) ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', 'Estimated distance using UTM' ) ;
+plot( (baseline_data(1,:)-baseline_data(1,1))/60, sqrt(utm_data(2,:).^2+utm_data(3,:).^2), 'LineWidth',2 ) ;
+set(gca,'FontSize',14) ;
+xlabel('time, sec') ;
+ylabel('Distance, m') ;
+grid on ;
+title(['UTM D: ',settings.fnameA,'-', settings.fnameB],'interpreter','none') ;
 
 fclose(fout) ;

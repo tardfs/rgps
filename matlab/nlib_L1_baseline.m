@@ -188,9 +188,9 @@ P = F*P*F' + Qd ;
 
 % ambiguity resolution
 addpath(easyLib) ;
-%[a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
-%x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,1)) ;
-%x(4:end) = a(:,1) ;
+[a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
+x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,1)) ;
+x(4:end) = a(:,1) ;
 rmpath(easyLib) ;
 
 % get measurement vector z
