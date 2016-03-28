@@ -164,6 +164,15 @@ else
         Esv(s,:) = Esv(s,:)/norm(Esv(s,:),2) ;
     end
     
+    % Observation marix
+    x_len = size(L1.x,1) ;
+    H = zeros((numSat-1)*2,x_len) ;
+    for n=1:numSat-1
+        H(n,1:3) = Esv(1,:) - Esv(n+1,:) ;
+        H(n+(numSat-1),1:3) = H(n,1:3)/lambda1 ;
+        H(n+(numSat-1),n+3) = 1 ;
+    end 
+    
 end
 
 x = L1.x ;

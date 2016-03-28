@@ -56,7 +56,7 @@ set(gca,'FontSize',14) ;
 legend('\sigma_x','\sigma_y','\sigma_z') ;
 grid on ;
 ylabel('m^2') ;
-title([settings.recv1File,', ', settings.recv2File]) ;
+title([settings.recv1File,', ', settings.recv2File], 'interpreter', 'none' ) ;
 
 figure(3) ;
 f1 = 154*10.23e6 ;		     % L1 frequency, Hz
@@ -77,7 +77,8 @@ title([settings.recv1File,', ', settings.recv2File]) ;
 figure(4) ;
 set(gcf,'NumberTitle','off') ;
 set(gcf,'Name', 'Code Double Difference' ) ;
-hold off, plot(z_data(1:4,:)') ;
+numDif = size(z_data,1)/2 ;
+hold off, plot(z_data(1:numDif,:)','LineWidth',1) ;
 set(gca,'FontSize',14) ;
 xlabel('epoch #') ;
 ylabel('\Delta\nabla\rho^{ij_{AB}}') ;
@@ -88,16 +89,17 @@ grid on ;
 
 figure(5) ;
 minutesScale = (baseline_data(1,:)-baseline_data(1,1))/60 ;
-visData = z_data(8,:).' ;
+numDif = size(z_data,1)/2 ;
+visData = z_data(numDif+1:end,:).' ;
 set(gcf,'NumberTitle','off') ;
 set(gcf,'Name', 'Phase Double Differences' ) ;
-hold off, plot(minutesScale,visData*lambda1) ;
+hold off, plot(minutesScale,visData*lambda1,'LineWidth',2) ;
 set(gca,'FontSize',14) ;
 xlabel('minutes') ;
 ylabel('\Delta\nabla\phi^{ij_{AB}}, m') ;
 std_phi = mean(std(visData,[],1)) ;
 title(sprintf('Std(\\Delta\\nabla\\phi^{ij_{AB}}):%5.3f cycles (%5.3f m)', std_phi, std_phi*lambda1 )) ;
-legend('\Delta\nabla\phi^{15}_{AB}','\Delta\nabla\phi^{13}_{AB}',...
+legend('\Delta\nabla\phi^{12}_{AB}','\Delta\nabla\phi^{13}_{AB}',...
     '\Delta\nabla\phi^{14}_{AB}','\Delta\nabla\phi^{15}_{AB}') ;
 grid on ;
 
