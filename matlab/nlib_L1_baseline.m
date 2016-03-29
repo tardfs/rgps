@@ -17,10 +17,17 @@ if numSat<settings.minSatNum
     return ;
 end
 
-% [sat_list, sat_reindex] = sort(sat_list) ;
-% Eph = Eph(:,sat_reindex) ;
-% obsA = obsA(sat_reindex) ;
-% obsB = obsB(sat_reindex) ;
+% get rough A & B positions
+addpath(easyLib) ;
+[A_pos, ~, ~, A_basic_obs] = recpo_ls(prMesA(:),(1:numSat)', measurementTime, Eph ) ;
+[B_pos, ~, ~, ~] = recpo_ls(prMesB(:),(1:numSat)', measurementTime, Eph ) ;
+if settings.useSolBasedPrMes
+    for k=1:numSat
+        [~,prMesA(k),~] = get_rho( measurementTime, prMesA(k), Eph(:,k), A_pos ) ;
+        [~,prMesB(k),~] = get_rho( measurementTime, prMesB(k), Eph(:,k), B_pos ) ;
+    end
+end
+rmpath(easyLib) ;
 
 if isempty(L1)
 
@@ -54,7 +61,7 @@ if isempty(L1)
     % get rough A & B positions
     addpath(easyLib) ;
     [A_pos, ~, ~, A_basic_obs] = recpo_ls(prMesA(:),(1:numSat)', measurementTime, Eph ) ;
-    [B_pos, ~, ~, ~] = recpo_ls(prMesB(:),(1:numSat)', measurementTime, Eph ) ;
+    [B_pos, ~, ~, ~] = recpo_ls(prMesB(:),(1:numSat)', measurementTime, Eph ) ;    
     rmpath(easyLib) ;
     
     satPos = A_basic_obs(:,1:3) ;
@@ -186,13 +193,6 @@ H = L1.H ;
 x = F*x ;
 P = F*P*F' + Qd ;
 
-% ambiguity resolution
-addpath(easyLib) ;
-[a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
-x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,1)) ;
-x(4:end) = a(:,1) ;
-rmpath(easyLib) ;
-
 % get measurement vector z
 zrho = zeros(numSat-1,1) ;
 zphi = zeros(numSat-1,1) ;
@@ -203,17 +203,29 @@ for n=2:numSat
     zphi(n-1) = dphi_AB_1 - (cpMesA(n)-cpMesB(n)) ;
 end
 z = [zrho;zphi] ;
-L1.z = z ;
 
 % correction stage
 K = P*H'*inv(H*P*H'+R) ;
 x = x + K*(z - H*x) ;
 P = P - K*H*P ;
 
+% ambiguity resolution
+addpath(easyLib) ;
+[a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
+caseId = 1 ;
+x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,caseId)) ;
+x(4:end) = a(:,caseId) ;
+rmpath(easyLib) ;
+
+% High rate procedure
+b = pinv(H(numSat:end,1:3))*(z(numSat:end)-x(4:end)) ;
+
 % save context
+L1.b = b ;
 L1.x = x ;
 L1.F = F ;
 L1.P = P ;
 L1.Qd = Qd ;
 L1.R = R ;
 L1.H = H ;
+L1.z = z ;

@@ -59,15 +59,15 @@ if settings.check_for_time_sync
     plot(AB_time_err*settings.v_light,'LineWidth',2) ;
     set(gca,'FontSize',14) ;
     grid on ;
-    xlabel('Time, sec') ;
+    xlabel('Epoch #') ;
     %ylabel(sprintf('Light travel, m (1ms:%3.2f m)', settings.v_light*1e-3 )) ;
     ylabel('ms') ;
-    title(sprintf('A-B Time mismatch: %s', settings.fnameA )) ;
+    title(sprintf('A-B Time mismatch: %s', settings.fnameA ),'interpreter','none') ;
     
     figure(21) ;
     hold off , plot(recvA_Tow_v(2:end)-recvA_Tow_v(1:end-1), 'LineWidth',2) ;
     hold on ,  plot(recvB_Tow_v(2:end)-recvB_Tow_v(1:end-1), 'r-','LineWidth',2) ;
-    title(sprintf('A & B Time step: %s', settings.fnameA )) ;
+    title(sprintf('A & B Time step: %s', settings.fnameA ),'interpreter','none') ;
     legend('A time step', 'B time step') ;
     set(gca,'FontSize',14) ;
     grid on ;
@@ -103,7 +103,7 @@ if settings.check_for_time_sync
     [~, ~, sMapB] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
     title( sprintf('%s,range: %d..%d', settings.fnameB, AB_n2k(startIndex), AB_n2k(endIndex) ),'interpreter','none' ) ;
     subplot(224),
-    nlib_sat_timeline(1+sMapB*100)
+    nlib_sat_timeline(1+sMapB)
     
     pause ;
     
@@ -168,7 +168,8 @@ for n=startIndex:endIndex
             L1_state = nlib_L1_baseline(fout, L1_state, settings, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB ) ;
 
             baseline_data(1, BL) = measurementTime ;
-            baseline_data(2:4, BL) = L1_state.x(1:3) ;
+            %baseline_data(2:4, BL) = L1_state.x(1:3) ;
+            baseline_data(2:4, BL) = L1_state.b ;
             
             x_data(1:length(L1_state.x), BL)  = L1_state.x ;
             P_data(1:length(L1_state.x), BL) = diag(L1_state.P) ;

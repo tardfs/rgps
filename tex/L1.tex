@@ -6,24 +6,27 @@
 \usepackage[cmex10]{amsmath}
 \usepackage{amsfonts}
 \usepackage{hyperref}
-\usepackage{pscyr}
 \usepackage[pdftex]{graphicx}
-%\usepackage{fancyhdr}
-%\pagestyle{fancy}
+\usepackage{epsfig}
+\usepackage{epstopdf}
+\usepackage{pdfpages}
+\usepackage{pscyr}
+\usepackage{fancyhdr}
 \renewcommand{\rmdefault}{fjn}
 \setlength{\textwidth}{170mm}
 \setlength{\textheight}{240mm}
 \voffset=-20mm
 \hoffset=-20mm
+\pagestyle{fancy}
 \title{Реализация процедуры L1}
-%\lhead{Кафедра "Управление и моделирование систем"}
-%\lfoot{Семинар 1}
+%\lhead{RGPS v1.0}
+%\lfoot{Ref. Matlab model}
 \begin{document}
 %\maketitle
 %\begin{abstract}
 %Рассматриваются методы ...
 %\end{abstract}
-\section{Статический фильтр Калмана}
+\section{Разностные измерения GPS}
 $(\Delta x,\Delta y,\Delta z)$ - искомый вектор относительных координат в системе ECEF.\\
 Кодовая псевдодальность, м:
 \begin{equation}
@@ -69,9 +72,11 @@ $N$ - фазовая неоднозначность (целое число длин волн, неизвестное на стороне при
 Если приемник двухчастотный, то вместо простого фазового измерения $\phi$ используется сумма 
 (narrowline) $\phi_{NL}=\phi_{L1}+\phi_{L2}$ или разность (wideline) $\phi_{WL}=\phi_{L1}-\phi_{L2}$ 
 фазовых измерений на данном приемнике. 
-Такой подход значительно упрощает разрешение неоднозначности
+Использование двухчастотного приемника повышает надежность процедуры разрешения неоднозначности
 фазовых измерений (определение истинного значения $N$).
 
+\clearpage
+\section{Статический фильтр Калмана}
 Фильтр Калмана представляет собой итерационную процедуру, где каждая итерация состоит из двух этапов:
 прогноза и коррекции на основе измерения. Прогноз вектора состояния:
 \begin{align}
@@ -94,7 +99,7 @@ K_k = P_kH^T(HP_kH^T+R)^{-1}
 P_k = P^-_k - K_kHP^-_k
 \end{align}
 
-Прогноз вектора состояния
+Для статического случая прогноз вектора состояния
 \begin{equation}
 \begin{array}{ccc}
 \label{eqn_1}
@@ -227,7 +232,7 @@ H =
 Матрица $H$ в англ. источниках называется observation matrix, line-of-sight matrix, 
 matrix of partials, geometry matrix, design matrix, measurements sensitivity matrix или даже Jacobi Matrix.
 
-В документе \cite{Comstock}, стр.45 конкретно указано: "The Kalman filter provides several useful outputs. 
+В документе \cite[стр.~45]{Comstock}, конкретно указано: "The Kalman filter provides several useful outputs. 
 First, the floating point \textbf{carrier-phase ambiguity estimates}, as well as the covariance matrix, are
 fed to the LAMBDA ambiguity resolution task. Second, the \textbf{unit line-of-sight vector} to each of the SVs 
 is fed to the high-rate output task. Finally, the Kalman filter provides a low rate (1 Hertz), 
@@ -259,29 +264,93 @@ if too many SVs are lost at a single epoch, the Kalman filter has the ability to
 the required data to the ambiguity resolution routine and re-calculate the complete
 ambiguity set. This will be discussed in much greater detail later in the chapter."
 
+\subsection{Разрешение неоднозначности фазовых измерений}
+Уравнение фазовых наблюдений имеет вид \cite[стр.74, 3.47]{Comstock}:
+\begin{equation}
+\Delta\nabla\phi^{j,k}_{AB}=\lambda^{-1}(\mathbf{e^j-e^k})\cdot\mathbf{\Delta x} + \Delta\nabla N^{j,k}_{AB}
+\end{equation}
+Здесь 
+\begin{itemize}
+\item {$\Delta\nabla\phi^{j,k}_{AB}$ - измеренная фазовая разность.}
+\item {$\lambda^{-1}(\mathbf{e^j-e^k})\cdot\mathbf{\Delta x}$ - скалярное произведение между разностью направляющих векторов на j-ый и $k$-ый спутники и искомым вектором относительных координат.}
+\item {$\Delta\nabla N^{j,k}_{AB}$ - целочисленная (в циклах) фазовая разность не содержащая неоднозначности.}
+\end{itemize}
+
+Исходное уравнение наблюдения для процедуры \text{LAMBDA} \cite[стр.13, формула (2.1)]{Tiberius}:
+\begin{equation}
+y = Bb+Aa+e
+\end{equation}
+
 Результаты работы процедуры устранения неоднозначности позволяют 
 пересчитать вектор фазовых измерений \cite{Tiberius}, стр.15, формула 2.7:
 \begin{equation}
 b = \hat{b} - Q_{t} Q_a^{-1} (\hat{a}-a)
 \end{equation}
 
-\begin{figure}[h]
+\clearpage
+\section{Результаты моделирования}
+
+\subsection{RS\_matv\_50mm}
+
+\begin{figure}[h!]
 \centering
-\includegraphics{kalman_ecef_vars.png}
-\caption{Дисперсия относительных координат}
+\includegraphics{images/matv_50mm_1.png}
+\caption{RS\_matv\_50mm: A-B Time mismatch}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_skyplot.png}
+\caption{RS\_matv\_50mm: A-B Sky plot}
 \end{figure}
 \begin{figure}[h]
 \centering
-\includegraphics{kalman_dd_vars.png}
-\caption{Дисперсия вторых разностей}
+\includegraphics{images/matv_50mm_ecef.png}
+\caption{RS\_matv\_50mm: ECEF baseline}
 \end{figure}
-\begin{figure}[h]
+\begin{figure}[h!]
 \centering
-\includegraphics{comstock_vars.png}
-\caption{Comstock}
+\includegraphics{images/matv_50mm_sigma_b.png}
+\caption{RS\_matv\_50mm: ECEF variance}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_sigma_phase.png}
+\caption{RS\_matv\_50mm: phase double difference variances}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_code_input.png}
+\caption{RS\_matv\_50mm: Input code double differences}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_phase_input.png}
+\caption{RS\_matv\_50mm: Input phase double differences}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_phase_filtered.png}
+\caption{RS\_matv\_50mm: Filtered and resolved phase double differences}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_utm.png}
+\caption{RS\_matv\_50mm: UTM baseline}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_ecef_d.png}
+\caption{RS\_matv\_50mm: ECEF distance}
+\end{figure}
+\begin{figure}[h!]
+\centering
+\includegraphics{images/matv_50mm_utm_d.png}
+\caption{RS\_matv\_50mm: UTM distance}
 \end{figure}
 
-
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}	% Добавляем список литературы в оглавление
 \begin{thebibliography}{1}
 \bibitem{Comstock} Stephen J. Comstock, 
 Development of a Low-Latency, High Data Rate, Differential GPS Relative Positioning System for 
