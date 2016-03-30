@@ -180,6 +180,7 @@ else
         H(n+(numSat-1),n+3) = 1 ;
     end 
     
+    L1.H = H ;    
 end
 
 x = L1.x ;
@@ -211,14 +212,16 @@ P = P - K*H*P ;
 
 % ambiguity resolution
 addpath(easyLib) ;
+% get integer ambiguities
 [a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
+% 
 caseId = 1 ;
 x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,caseId)) ;
 x(4:end) = a(:,caseId) ;
 rmpath(easyLib) ;
 
 % High rate procedure
-b = pinv(H(numSat:end,1:3))*(z(numSat:end)-x(4:end)) ;
+b = pinv( H(numSat:end,1:3))*(z(numSat:end) - x(4:end) ) ;
 
 % save context
 L1.b = b ;

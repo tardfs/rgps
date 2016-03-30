@@ -175,6 +175,18 @@ for n=startIndex:endIndex
             P_data(1:length(L1_state.x), BL) = diag(L1_state.P) ;
 
             z_data(:, BL) = L1_state.z(1:8) ;
+            
+            if settings.drawStateCovariances
+                figure(23) ;
+                set(gcf,'NumberTitle','off') ;
+                set(gcf,'Name', 'State vector covariance matrix' ) ;
+                contourf(L1_state.P) ;
+                title('State vector covariance matrix') ;
+                set(gca,'XTickLabel',{'x','y','z','N12','N13','N14','N15','N16','N17','N18','N19'}) ;
+                set(gca,'YTickLabel',{'x','y','z','N12','N13','N14','N15','N16','N17','N18','N19'}) ;
+                drawnow ;
+            end
+            
         end
         
     end
