@@ -129,6 +129,8 @@ if isempty(L1)
     L1.R = R ;
     L1.H = H ;
     
+    L1.ambState = 0 ;
+    
 else
     % checking for sat list
     rbldFlag = 0 ;
@@ -211,14 +213,17 @@ x = x + K*(z - H*x) ;
 P = P - K*H*P ;
 
 % ambiguity resolution
-addpath(easyLib) ;
-% get integer ambiguities
-[a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
-% 
-caseId = 1 ;
-x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,caseId)) ;
-x(4:end) = a(:,caseId) ;
-rmpath(easyLib) ;
+%if L1.ambState<3
+    addpath(easyLib) ;
+    % get integer ambiguities
+    [a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
+    % 
+    caseId = 1 ;
+    x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,caseId)) ;
+    x(4:end) = a(:,caseId) ;
+    rmpath(easyLib) ;
+    L1.ambState = L1.ambState + 1 ; 
+%end
 
 % High rate procedure
 b = pinv( H(numSat:end,1:3))*(z(numSat:end) - x(4:end) ) ;

@@ -8,7 +8,7 @@ settings.recv2File = '..\data\RS_matv_50mm_02.mat' ;
 [~,settings.fnameB] = fileparts( settings.recv2File ) ;
 settings.v_light = 299792458 ;	     % vacuum speed of light m/s
 settings.f1 = 154*10.23e6 ;		     % L1 frequency, Hz
-settings.lambda1 = v_light/f1 ;	     % wavelength on L1:  .19029367  m
+settings.lambda1 = settings.v_light/settings.f1 ;   % wavelength on L1:  .19029367  m
 settings.check_for_time_sync = 1 ;
 settings.useSolBasedPrMes = 1 ;
 settings.timeSyncTol = 1e-3 ; % Synchronization tolerance
@@ -36,8 +36,11 @@ ubx_geodetic_B = ubxGeodetic ;
 fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
+fprintf(repmat('\b',1,160)) ; fprintf('get precise A position...') ;
 % get precise A position
 mean_ecef_A = nlib_mean_ecef(nlib_easy_ecef_solver( measurments_A )) ;
+fprintf(repmat('\b',1,160)) ;
+fprintf('\n') ;
 
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
 [baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B) ;
