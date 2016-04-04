@@ -17,14 +17,16 @@ if numSat<settings.minSatNum
     return ;
 end
 
+rhoA = prMesA ;
+rhoB = prMesB ;
 % get rough A & B positions
 addpath(easyLib) ;
 [A_pos, ~, ~, A_basic_obs] = recpo_ls(prMesA(:),(1:numSat)', measurementTime, Eph ) ;
 [B_pos, ~, ~, ~] = recpo_ls(prMesB(:),(1:numSat)', measurementTime, Eph ) ;
 if settings.useSolBasedPrMes
     for k=1:numSat
-        [~,prMesA(k),~] = get_rho( measurementTime, prMesA(k), Eph(:,k), A_pos ) ;
-        [~,prMesB(k),~] = get_rho( measurementTime, prMesB(k), Eph(:,k), B_pos ) ;
+        [~,rhoA(k),~] = get_rho( measurementTime, prMesA(k), Eph(:,k), A_pos ) ;
+        [~,rhoB(k),~] = get_rho( measurementTime, prMesB(k), Eph(:,k), B_pos ) ;
     end
 end
 rmpath(easyLib) ;
@@ -158,6 +160,8 @@ else
         Eph(1,:) = 1:numSat ;
         prMesA = prMesA(maplist) ;
         prMesB = prMesB(maplist) ;
+        rhoA = rhoA(maplist) ;
+        rhoB = rhoB(maplist) ;
         cpMesA = cpMesA(maplist) ;
         cpMesB = cpMesB(maplist) ;
     end
@@ -174,15 +178,15 @@ else
     end
     
     % Observation marix
-    x_len = size(L1.x,1) ;
-    H = zeros((numSat-1)*2,x_len) ;
-    for n=1:numSat-1
-        H(n,1:3) = Esv(1,:) - Esv(n+1,:) ;
-        H(n+(numSat-1),1:3) = H(n,1:3)/lambda1 ;
-        H(n+(numSat-1),n+3) = 1 ;
-    end 
-    
-    L1.H = H ;    
+%     x_len = size(L1.x,1) ;
+%     H = zeros((numSat-1)*2,x_len) ;
+%     for n=1:numSat-1
+%         H(n,1:3) = Esv(1,:) - Esv(n+1,:) ;
+%         H(n+(numSat-1),1:3) = H(n,1:3)/lambda1 ;
+%         H(n+(numSat-1),n+3) = 1 ;
+%     end 
+%     
+%     L1.H = H ;    
 end
 
 x = L1.x ;
@@ -199,13 +203,14 @@ P = F*P*F' + Qd ;
 % get measurement vector z
 zrho = zeros(numSat-1,1) ;
 zphi = zeros(numSat-1,1) ;
-drho_AB_1 = prMesA(1) - prMesB(1) ;
+drho_AB_1 = rhoA(1) - rhoB(1) ;
 dphi_AB_1 = cpMesA(1) - cpMesB(1) ;
 for n=2:numSat
-    zrho(n-1) = drho_AB_1 - (prMesA(n)-prMesB(n)) ;
+    zrho(n-1) = drho_AB_1 - (rhoA(n)-rhoB(n)) ;
     zphi(n-1) = dphi_AB_1 - (cpMesA(n)-cpMesB(n)) ;
 end
 z = [zrho;zphi] ;
+phi_resid = zphi - x(4:end) ;
 
 % correction stage
 K = P*H'*inv(H*P*H'+R) ;
@@ -213,7 +218,7 @@ x = x + K*(z - H*x) ;
 P = P - K*H*P ;
 
 % ambiguity resolution
-%if L1.ambState<3
+if L1.ambState>3
     addpath(easyLib) ;
     % get integer ambiguities
     [a,~,~,~] = lambda(x(4:end), P(4:end,4:end)) ;
@@ -222,8 +227,8 @@ P = P - K*H*P ;
     x(1:3) = x(1:3) - P(1:3,4:end)*inv(P(4:end,4:end))*(x(4:end)-a(:,caseId)) ;
     x(4:end) = a(:,caseId) ;
     rmpath(easyLib) ;
-    L1.ambState = L1.ambState + 1 ; 
-%end
+end
+L1.ambState = L1.ambState + 1 ; 
 
 % High rate procedure
 b = pinv( H(numSat:end,1:3))*(z(numSat:end) - x(4:end) ) ;
@@ -237,3 +242,4 @@ L1.Qd = Qd ;
 L1.R = R ;
 L1.H = H ;
 L1.z = z ;
+L1.phi_resid = phi_resid ;

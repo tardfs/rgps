@@ -278,16 +278,16 @@ ambiguity set. This will be discussed in much greater detail later in the chapte
 \item {$\Delta\nabla N^{j,k}_{AB}$ - целочисленная (в циклах) фазовая неоднозначность.}
 \end{itemize}
 
-Исходное уравнение наблюдения для процедуры LAMBDA \cite[стр.13, формула (2.1)]{Tiberius}\cite{pugachev}:
+Исходное уравнение наблюдения для процедуры LAMBDA \cite[стр.13, формула (2.1)]{Tiberius}:
 \begin{equation}
-y = Bb+Aa+e
+\mathbf{y} = B\mathbf{b}+A\mathbf{a}+\mathbf{e}
 \end{equation}
 
 Здесь
-$A$ и $B$ - модматрицы составляющие матрицу $H$
+$A$ и $B$ - подматрицы, составляющие матрицу наблюдения $H$.
 \begin{itemize}
-\item {$b$ - разность между измеренными и вычисленными фазовыми разностями.}
-\item {$b$ - вектор относительных координат.}
+\item {$\mathbf{b}=(\Delta x,\Delta y,\Delta z)^T$ - вектор относительных координат}
+\item {$\mathbf{a}=(\Delta\nabla N^{1,2}_{AB},\Delta\nabla N^{1,3}_{AB}\ldots \Delta\nabla N^{1,n+1}_{AB})^T$ - вектор фазовых неоднозначностей }
 \end{itemize}
 
 Результаты работы процедуры устранения неоднозначности позволяют 

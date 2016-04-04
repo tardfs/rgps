@@ -43,7 +43,7 @@ fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
-[baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B) ;
+[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B) ;
 
 figure(1) ;
 hold off ,
@@ -161,5 +161,26 @@ title(sprintf('Std(\\Delta\\nabla\\phi^{ij_{AB}}):%5.3f cycles (%5.3f m)', std_p
 legend('\Delta\nabla\phi^{12}_{AB}','\Delta\nabla\phi^{13}_{AB}',...
     '\Delta\nabla\phi^{14}_{AB}','\Delta\nabla\phi^{15}_{AB}') ;
 grid on ;
+
+figure(10) ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', '\Delta\nabla\phi^{ij}_{AB}-N^{ij}_{AB}' ) ;
+visData = phi_resid_data.' ;
+hold off, plot( visData ,'LineWidth',2) ;
+set(gca,'FontSize',14) ;
+xlabel('Epoch #') ;
+ylabel('m') ;
+grid on ;
+
+figure(11) ;
+set(gcf,'NumberTitle','off') ;
+set(gcf,'Name', 'H_Data' ) ;
+visData = H_data.' ;
+hold off, plot( visData ,'LineWidth',2) ;
+set(gca,'FontSize',14) ;
+xlabel('Epoch #') ;
+ylabel('m') ;
+grid on ;
+
 
 fclose(fout) ;

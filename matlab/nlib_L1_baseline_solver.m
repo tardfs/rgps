@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function [baseline_data, x_data, P_data, z_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB)
+function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB)
 
 BL = 0 ; % number of baselines computed
 
@@ -14,6 +14,8 @@ baseline_data = zeros(5,min(N,K)) ;
 x_data = zeros(7,min(N,K)) ;
 P_data = zeros(7,min(N,K)) ;
 z_data = zeros(8,min(N,K)) ;
+H_data = zeros(32,min(N,K)) ;
+phi_resid_data = zeros(12,min(N,K)) ;
 
 
 L1_state = [] ;
@@ -175,6 +177,9 @@ for n=startIndex:endIndex
             P_data(1:length(L1_state.x), BL) = diag(L1_state.P) ;
 
             z_data(:, BL) = L1_state.z(1:8) ;
+            hData = L1_state.H(1:NUMSAT-1,1:3) ;
+            H_data(1:(NUMSAT-1)*3, BL ) = hData(:) ;
+            phi_resid_data(1:NUMSAT-1, BL) = L1_state.phi_resid ;
             
             if settings.drawStateCovariances
                 figure(23) ;
@@ -196,3 +201,5 @@ baseline_data = baseline_data(:,1:BL) ;
 x_data = x_data(:,1:BL) ;
 P_data = P_data(:,1:BL) ;
 z_data = z_data(:,1:BL) ;
+H_data = H_data(1:(NUMSAT-1)*3,1:BL) ;
+phi_resid_data = phi_resid_data(1:NUMSAT-1,1:BL) ;
