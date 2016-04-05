@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB, mean_ecef_A)
+function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB, mean_ecef_A, easy_ecef_A)
 
 BL = 0 ; % number of baselines computed
 
@@ -96,16 +96,20 @@ if settings.check_for_time_sync
     set(gcf,'Name', sprintf('File %s,range: %d..%d', settings.fnameA, startIndex, endIndex ) ) ; 
 
     subplot(221),
-    [~, ~, sMapA] = nlib_plot_sats(settings, measurmentsA(startIndex:endIndex)) ;
+    [~, ElA, sMapA] = nlib_plot_sats(settings, measurmentsA(startIndex:endIndex)) ;
     title( sprintf('%s,range: %d..%d', settings.fnameA, startIndex, endIndex ),'interpreter','none')  ;
     subplot(223),
-    nlib_sat_timeline(1+sMapA)
+    [hlMapA, hl_sat_list_A] = nlib_highlight_smap(sMapA, ElA) ;
+    nlib_sat_timeline(hlMapA)
 
     subplot(222),
-    [~, ~, sMapB] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
+    [~, ElB, sMapB] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
     title( sprintf('%s,range: %d..%d', settings.fnameB, AB_n2k(startIndex), AB_n2k(endIndex) ),'interpreter','none' ) ;
     subplot(224),
-    nlib_sat_timeline(1+sMapB)
+    [hlMapB, hl_sat_list_B] = nlib_highlight_smap(sMapB, ElB) ;
+    nlib_sat_timeline(hlMapB)
+    
+    mean_ecef_A = nlib_mean_ecef(easy_ecef_A(:,startIndex:endIndex)) ;
     
     pause ;
     
@@ -189,6 +193,7 @@ for n=startIndex:endIndex
                 title('State vector covariance matrix') ;
                 set(gca,'XTickLabel',{'x','y','z','N12','N13','N14','N15','N16','N17','N18','N19'}) ;
                 set(gca,'YTickLabel',{'x','y','z','N12','N13','N14','N15','N16','N17','N18','N19'}) ;
+                axis square ;
                 drawnow ;
             end
             

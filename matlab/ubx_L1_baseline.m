@@ -1,4 +1,5 @@
 clc ;
+%opengl software ;
 
 settings.easyLib = getFullPath('..\\easy') ;
 settings.gnssLib = getFullPath('..\\softgnss') ;
@@ -14,10 +15,10 @@ settings.useSolBasedPrMes = 1 ;
 settings.timeSyncTol = 1e-3 ; % Synchronization tolerance
 settings.minSatNum = 5 ;
 settings.maxSatNum = 20 ;
-settings.drawStateCovariances = 0 ;
+settings.drawStateCovariances = 1 ;
 settings.enableSvId = [1,4,8,14,19,22,32] ; % matv_50mm 1040..1140
 %settings.enableSvId = [4,8,11,14,19,22,32] ; % RS_matv_1400mm_680mm 50..150
-%settings.enableSvId = [1,3,4,11,14,19,32] ; % RS_matv_1400mm_680mm 1400..1600
+%settings.enableSvId = [1,3,4,11,14,19,32] ; % RS_matv_1400mm_680mm 1460..1600
 %settings.enableSvId = [15,16,18,21,22,27] ; % RS_matv_2000mm 570..720
 
 fout = fopen('ubx_L1_out.txt','w+t') ;
@@ -46,7 +47,7 @@ fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
-[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B, mean_ecef_A) ;
+[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B, mean_ecef_A, easy_ecef_A) ;
 
 figure(1) ;
 hold off ,
@@ -167,12 +168,13 @@ grid on ;
 
 figure(10) ;
 set(gcf,'NumberTitle','off') ;
-set(gcf,'Name', '\Delta\nabla\phi^{ij}_{AB}-N^{ij}_{AB}' ) ;
+set(gcf,'Name', 'Phase residuals' ) ;
 visData = phi_resid_data.' ;
 hold off, plot( visData ,'LineWidth',2) ;
 set(gca,'FontSize',14) ;
 xlabel('Epoch #') ;
 ylabel('m') ;
+title('\Delta\nabla\phi^{ij}_{AB}-N^{ij}_{AB}', 'interpreter', 'tex') ;
 grid on ;
 
 figure(11) ;
