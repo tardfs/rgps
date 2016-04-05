@@ -20,7 +20,6 @@ settings.enableSvId = [1,4,8,14,19,22,32] ; % matv_50mm 1040..1140
 %settings.enableSvId = [1,3,4,11,14,19,32] ; % RS_matv_1400mm_680mm 1400..1600
 %settings.enableSvId = [15,16,18,21,22,27] ; % RS_matv_2000mm 570..720
 
-
 fout = fopen('ubx_L1_out.txt','w+t') ;
 
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;
@@ -36,14 +35,18 @@ ubx_geodetic_B = ubxGeodetic ;
 fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
-fprintf(repmat('\b',1,160)) ; fprintf('get precise A position...') ;
 % get precise A position
-mean_ecef_A = nlib_mean_ecef(nlib_easy_ecef_solver( measurments_A )) ;
+fprintf(repmat('\b',1,160)) ; fprintf('get precise A position...') ;
+easy_ecef_A = nlib_easy_ecef_solver( measurments_A ) ;
+mean_ecef_A = nlib_mean_ecef(easy_ecef_A) ;
+%mean_ecef_A(2) = mean_ecef_A(2) - 10 ;
+%mean_ecef_A(3) = mean_ecef_A(3) - 10 ;
+%mean_ecef_A(4) = mean_ecef_A(4) - 10 ;
 fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
 cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
-[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B) ;
+[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B, mean_ecef_A) ;
 
 figure(1) ;
 hold off ,

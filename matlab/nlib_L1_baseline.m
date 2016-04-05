@@ -1,4 +1,4 @@
-function L1 = nlib_L1_baseline(fout, L1, settings, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB)
+function L1 = nlib_L1_baseline(fout, L1, settings, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB, mean_ecef_A )
 
 % some physical constants
 v_light = 299792458 ;	     % vacuum speed of light m/s
@@ -111,7 +111,8 @@ if isempty(L1)
     
     % compute Esv matrix
     % each row is union vector e corresponded to n-th sattelite
-    Esv = satPos - repmat(A_pos(1:3).',numSat,1) ;
+    %Esv = satPos - repmat(A_pos(1:3).',numSat,1) ;
+    Esv = satPos - repmat(mean_ecef_A(2:4).',numSat,1) ;
     for s=1:numSat
         Esv(s,:) = Esv(s,:)/norm(Esv(s,:),2) ;
     end
@@ -172,21 +173,22 @@ else
     satPos = A_basic_obs(:,1:3) ;
     % compute Esv matrix
     % each row is union vector e corresponded to n-th sattelite
-    Esv = satPos - repmat(A_pos(1:3).',numSat,1) ;
+    % Esv = satPos - repmat(A_pos(1:3).',numSat,1) ;
+    Esv = satPos - repmat(mean_ecef_A(2:4).',numSat,1) ;    
     for s=1:numSat
         Esv(s,:) = Esv(s,:)/norm(Esv(s,:),2) ;
     end
     
     % Observation marix
-%     x_len = size(L1.x,1) ;
-%     H = zeros((numSat-1)*2,x_len) ;
-%     for n=1:numSat-1
-%         H(n,1:3) = Esv(1,:) - Esv(n+1,:) ;
-%         H(n+(numSat-1),1:3) = H(n,1:3)/lambda1 ;
-%         H(n+(numSat-1),n+3) = 1 ;
-%     end 
-%     
-%     L1.H = H ;    
+    x_len = size(L1.x,1) ;
+    H = zeros((numSat-1)*2,x_len) ;
+    for n=1:numSat-1
+        H(n,1:3) = Esv(1,:) - Esv(n+1,:) ;
+        H(n+(numSat-1),1:3) = H(n,1:3)/lambda1 ;
+        H(n+(numSat-1),n+3) = 1 ;
+    end 
+    
+    L1.H = H ;    
 end
 
 x = L1.x ;

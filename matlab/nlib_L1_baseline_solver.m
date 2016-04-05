@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB)
+function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB, mean_ecef_A)
 
 BL = 0 ; % number of baselines computed
 
@@ -99,7 +99,7 @@ if settings.check_for_time_sync
     [~, ~, sMapA] = nlib_plot_sats(settings, measurmentsA(startIndex:endIndex)) ;
     title( sprintf('%s,range: %d..%d', settings.fnameA, startIndex, endIndex ),'interpreter','none')  ;
     subplot(223),
-    nlib_sat_timeline(1+sMapA*100)
+    nlib_sat_timeline(1+sMapA)
 
     subplot(222),
     [~, ~, sMapB] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
@@ -167,7 +167,7 @@ for n=startIndex:endIndex
             
             measurementTime = TowA ;
             
-            L1_state = nlib_L1_baseline(fout, L1_state, settings, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB ) ;
+            L1_state = nlib_L1_baseline(fout, L1_state, settings, measurementTime, sat_list, Eph, prMesA, prMesB, cpMesA, cpMesB, mean_ecef_A ) ;
 
             baseline_data(1, BL) = measurementTime ;
             %baseline_data(2:4, BL) = L1_state.x(1:3) ;
