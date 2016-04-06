@@ -281,6 +281,7 @@ ambiguity set. This will be discussed in much greater detail later in the chapte
 Исходное уравнение наблюдения для процедуры LAMBDA \cite[стр.13, формула (2.1)]{Tiberius}:
 \begin{equation}
 \mathbf{y} = B\mathbf{b}+A\mathbf{a}+\mathbf{e}
+\label{lambda_equation}
 \end{equation}
 
 Здесь
@@ -290,10 +291,31 @@ $A$ и $B$ - подматрицы, составляющие матрицу наблюдения $H$.
 \item {$\mathbf{a}=(\Delta\nabla N^{1,2}_{AB},\Delta\nabla N^{1,3}_{AB}\ldots \Delta\nabla N^{1,n+1}_{AB})^T$ - вектор фазовых неоднозначностей }
 \end{itemize}
 
+Задача наименьших квадратов для \ref{lambda_equation} использует критерий \cite[стр.2]{Lambda2}, \cite[стр.14]{LambdaFAQ}:
+\begin{equation}
+\min\limits_{a,b}\|\mathbf{y}-B\mathbf{b}-A\mathbf{a}\|^2_{Q_y^{-1}}=\min\limits_{a,b}(\mathbf{y}-B\mathbf{b}-A\mathbf{a})^*Q_y^{-1}(\mathbf{y}-B\mathbf{b}-A\mathbf{a}) 
+\label{eq_min_int}
+\end{equation}
+
+Здесь $\mathbf{b}\in R^p$ и $\mathbf{a}\in Z^n$ - искомые векторы относительных координат и фазовых неоднозначностей.
+
+Как показано в работе \cite{Teunissen93}, целочисленная минимизация \ref{eq_min_int} может быть реализована 
+с помощью двухшаговой процедуры. На первом шаге вычисляются МНК оценки иcкомого вектора и его корреляционой матрицы.
+\begin{equation}
+\begin{pmatrix}
+\mathbf{\hat{a}} \\
+\mathbf{\hat{b}}
+\end{pmatrix},
+\begin{pmatrix}
+Q_a & Q_{ab} \\
+Q_{ba} & Q_b
+\end{pmatrix},
+\end{equation}
+
 Результаты работы процедуры устранения неоднозначности позволяют 
 пересчитать вектор фазовых измерений \cite{Tiberius}, стр.15, формула 2.7:
 \begin{equation}
-b = \hat{b} - Q_{t} Q_a^{-1} (\hat{a}-a)
+\mathbf{b} = \hat{\mathbf{b}} - Q_{t} Q_a^{-1} (\hat{\mathbf{a}}-\mathbf{a})
 \end{equation}
 
 \clearpage
@@ -372,6 +394,8 @@ Development of a Low-Latency, High Data Rate, Differential GPS Relative Position
 UAV Formation Flight control. {\em THESIS Presented to the Faculty Department of Electrical and Computer 
 Engineering Graduate School of Engineering and Management Air Force Institute of Technology}, 2006.
 \bibitem{Welch} Greg Welch, Gary Bishop, An Introduction to the Kalman Filter. ACM-2001. ACM Inc.
+\bibitem{Teunissen93} Teunissen, P.J.G. (1993): Least-squares estimation of the integer GPS ambiguities. Invited lecture. Section IV Theoryand Methodology, IAG General meeting. Beijing, China. (16p.). Also in \emph{Delft Geodetic Computing Centre LGRseries No. 6.}
+\bibitem{Lambda2} P. Teunissen, P. de Jonge and C. Tiberius. \emph{The Lambda-method for fast gps surveying.}  International Symposium "GPS Technology Applications Bucharest", Romania, September 26-29, 1995.
 \bibitem{LambdaFAQ} Peter Joosten, Christian Tiberius, Lambda: FAQs. - GPS Solutions (2002) 6:109–114. http://www.utdallas.edu/~aiken/GPSCLASS/lambdaambigfulltext.pdf
 \bibitem{Tiberius} Paul de Jonge, Tiberius C. The LAMBDA method for integer ambiguity estimation:implementation aspects. http://www.citg.tudelft.nl
 \bibitem{Carrier} Mark Petovello, Cillian O'Driscoll. Carrier phase and its measurement for GNSS. -Inside GNSS, July-August 2010. http://www.insidegnss.com/auto/julaug10-solutions.pdf
