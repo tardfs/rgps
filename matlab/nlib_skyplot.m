@@ -1,4 +1,4 @@
-function nlib_skyplot(Az, El, sMap)
+function nlib_skyplot(Az, El, sMap, sat_list)
 
 % This code is based on -*skyplot*- developed by Darius Plausinaitis 
 % and Kristin Larson
@@ -116,7 +116,11 @@ for s=1:32
         
         plot(hAxis, xx', yy','LineWidth',2,'Color',[0.2 0.4 0.9]) ;
         
-        plot(hAxis, xx(end), yy(end), 'rs', 'MarkerSize', 15) ;
+        if (nnz(s==sat_list)>0)
+            plot(hAxis, xx(end), yy(end), 'go', 'MarkerSize', 15, 'LineWidth',2 ) ;
+        else
+            plot(hAxis, xx(end), yy(end), 'rs', 'MarkerSize', 15, 'LineWidth',2 ) ;
+        end
 
         text(xx(end), yy(end), sprintf('%1d',s), 'HorizontalAlignment','Center','FontSize',12) ;
         

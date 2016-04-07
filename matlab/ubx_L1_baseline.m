@@ -1,5 +1,5 @@
 clc ;
-%opengl software ;
+% opengl software ;
 
 settings.easyLib = getFullPath('..\\easy') ;
 settings.gnssLib = getFullPath('..\\softgnss') ;
@@ -12,10 +12,11 @@ settings.f1 = 154*10.23e6 ;		     % L1 frequency, Hz
 settings.lambda1 = settings.v_light/settings.f1 ;   % wavelength on L1:  .19029367  m
 settings.check_for_time_sync = 1 ;
 settings.useSolBasedPrMes = 1 ;
-settings.timeSyncTol = 1e-3 ; % Synchronization tolerance
+settings.timeSyncTol = 10e-3 ; % Synchronization tolerance
+settings.minSatElevation = 30 ;
 settings.minSatNum = 5 ;
 settings.maxSatNum = 20 ;
-settings.drawStateCovariances = 1 ;
+settings.drawStateCovariances = 0 ;
 settings.enableSvId = [1,4,8,14,19,22,32] ; % matv_50mm 1040..1140
 %settings.enableSvId = [4,8,11,14,19,22,32] ; % RS_matv_1400mm_680mm 50..150
 %settings.enableSvId = [1,3,4,11,14,19,32] ; % RS_matv_1400mm_680mm 1460..1600
@@ -186,6 +187,5 @@ set(gca,'FontSize',14) ;
 xlabel('Epoch #') ;
 ylabel('m') ;
 grid on ;
-
 
 fclose(fout) ;

@@ -1,4 +1,4 @@
-function [Az, El, sMap] = nlib_plot_sats(settings,measurmentsA)
+function [Az, El, sMap, hlsMap, sat_list] = nlib_plot_sats(settings,measurmentsA)
 
 %settings.easyLib = getFullPath('..\\easy') ;
 %settings.gnssLib = getFullPath('..\\softgnss') ;
@@ -38,7 +38,10 @@ end
 
 rmpath(settings.easyLib) ;
 
-nlib_skyplot( Az, El, sMap ) ;
+[hlsMap, sat_list] = nlib_highlight_smap(settings,sMap, El) ;
+
+
+nlib_skyplot( Az, El, sMap, sat_list ) ;
 
 % hold off,
 % for s=1:32

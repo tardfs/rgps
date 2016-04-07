@@ -1,4 +1,4 @@
 function nlib_sat_timeline( sMap )
 
 image(sMap)
-colormap([.2 .2 .3; .1 .9 .9; .1 .9 .1; .9 .1 .1]) ;
+colormap([.2 .2 .5; .1 .9 .9; .2 .9 .2; .9 .2 .2]) ;

@@ -92,26 +92,39 @@ if settings.check_for_time_sync
     end
     
     figure(22),
+    clf,
     set(gcf,'NumberTitle','off') ;
-    set(gcf,'Name', sprintf('File %s,range: %d..%d', settings.fnameA, startIndex, endIndex ) ) ; 
+    set(gcf,'Name', '[RGPS] Sattelite Sky Plot' ) ;
 
-    subplot(221),
-    [~, ElA, sMapA] = nlib_plot_sats(settings, measurmentsA(startIndex:endIndex)) ;
-    title( sprintf('%s,range: %d..%d', settings.fnameA, startIndex, endIndex ),'interpreter','none')  ;
-    subplot(223),
-    [hlMapA, hl_sat_list_A] = nlib_highlight_smap(sMapA, ElA) ;
+    axes() ; set(gca,'Position', [.03 .52 .42 .42] ) ;
+    [~, ~, ~, hlMapA, hl_sat_list_A] = nlib_plot_sats(settings, measurmentsA(startIndex:endIndex)) ;
+    title( sprintf('%s,range: %d..%d', settings.fnameA, startIndex, endIndex ),'interpreter','none','FontSize',14)  ;
+    axes() ; set(gca,'Position', [.03 .04 .44 .42] ) ;
+    %[hlMapA, hl_sat_list_A] = nlib_highlight_smap(settings, sMapA, ElA) ;
     nlib_sat_timeline(hlMapA)
+    title(sprintf('%1d,',hl_sat_list_A),'FontSize',14) ;
 
-    subplot(222),
-    [~, ElB, sMapB] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
-    title( sprintf('%s,range: %d..%d', settings.fnameB, AB_n2k(startIndex), AB_n2k(endIndex) ),'interpreter','none' ) ;
-    subplot(224),
-    [hlMapB, hl_sat_list_B] = nlib_highlight_smap(sMapB, ElB) ;
+    axes() ; set(gca,'Position', [.53 .52 .42 .42] ) ;    
+    [~, ~, ~, hlMapB, hl_sat_list_B] = nlib_plot_sats(settings, measurmentsB(AB_n2k(startIndex:endIndex))) ;
+    title( sprintf('%s,range: %d..%d', settings.fnameB, AB_n2k(startIndex), AB_n2k(endIndex) ),'interpreter','none','FontSize',14 ) ;
+    axes() ; set(gca,'Position', [.53 .04 .44 .42] ) ;
+    %[hlMapB, hl_sat_list_B] = nlib_highlight_smap(sMapB, ElB) ;
     nlib_sat_timeline(hlMapB)
+    title(sprintf('%1d,',hl_sat_list_B),'FontSize',14) ;
     
     mean_ecef_A = nlib_mean_ecef(easy_ecef_A(:,startIndex:endIndex)) ;
     
-    pause ;
+    sat_list = intersect( hl_sat_list_A, hl_sat_list_B ) ;
+    
+    fprintf('Proposed sat list ') ; fprintf('%1d,', sat_list) ;
+    c = input('Accept [Y/N]?','s') ;
+    if isempty(c)
+        c = 'Y' ;
+    end
+    if c~='Y' && c~='y'
+        return ;
+    end
+    settings.enableSvId = sat_list ;
     
 end
 
