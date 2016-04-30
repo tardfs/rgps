@@ -201,7 +201,7 @@ for n=startIndex:endIndex
             if settings.drawStateCovariances
                 figure(23) ;
                 set(gcf,'NumberTitle','off') ;
-                set(gcf,'Name', 'State vector covariance matrix' ) ;
+                set(gcf,'Name', sprintf('State vector covariance matrix %d',n) ) ;
                 contourf(L1_state.P) ;
                 title('State vector covariance matrix') ;
                 set(gca,'XTickLabel',{'x','y','z','N12','N13','N14','N15','N16','N17','N18','N19'}) ;
