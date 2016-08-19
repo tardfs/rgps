@@ -1,10 +1,12 @@
 clc ;
-% opengl software ;
+opengl software ;
 
 settings.easyLib = getFullPath('..\\easy') ;
 settings.gnssLib = getFullPath('..\\softgnss') ;
-settings.recv1File = '..\data\RS_matv_50mm_01.mat' ;
-settings.recv2File = '..\data\RS_matv_50mm_02.mat' ;
+%settings.recv1File = '..\data\RS_matv_50mm_01.mat' ;
+%settings.recv2File = '..\data\RS_matv_50mm_01.mat' ;
+settings.recv1File = '..\data\SITE247J.mat' ;
+settings.recv2File = '..\data\SITE24~1.mat' ;
 [~,settings.fnameA] = fileparts( settings.recv1File ) ;
 [~,settings.fnameB] = fileparts( settings.recv2File ) ;
 settings.v_light = 299792458 ;	     % vacuum speed of light m/s
@@ -13,11 +15,14 @@ settings.lambda1 = settings.v_light/settings.f1 ;   % wavelength on L1:  .190293
 settings.check_for_time_sync = 1 ;
 settings.useSolBasedPrMes = 1 ;
 settings.timeSyncTol = 10e-3 ; % Synchronization tolerance
-settings.minSatElevation = 30 ;
+settings.minSatElevation = 15 ;
 settings.minSatNum = 5 ;
 settings.maxSatNum = 20 ;
 settings.drawStateCovariances = 1 ;
-settings.enableSvId = [1,4,8,14,19,22,32] ; % matv_50mm 1040..1140
+%settings.enableSvId = [1,4,8,14,19,22,32] ; % matv_50mm 1040..1140
+settings.enableSvId = [1,4,13,20,24,25] ; % matv_50mm 900..1200
+%settings.enableSvId = [1,4,8,10,11,18,32] ; % matv_50mm 40..140
+%settings.enableSvId = [1,4,8,14,22,32] ; % matv_50mm 800..1000
 %settings.enableSvId = [4,8,11,14,19,22,32] ; % RS_matv_1400mm_680mm 50..150
 %settings.enableSvId = [1,3,4,11,14,19,32] ; % RS_matv_1400mm_680mm 1460..1600
 %settings.enableSvId = [15,16,18,21,22,27] ; % RS_matv_2000mm 570..720
@@ -47,14 +52,20 @@ mean_ecef_A = nlib_mean_ecef(easy_ecef_A) ;
 fprintf(repmat('\b',1,160)) ;
 fprintf('\n') ;
 
-cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
-[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B, mean_ecef_A, easy_ecef_A) ;
+fprintf(repmat('\b',1,160)) ; fprintf('get precise B position...') ;
+easy_ecef_B = nlib_easy_ecef_solver( measurments_B ) ;
+fprintf(repmat('\b',1,160)) ;
+fprintf('\n') ;
+
+
+%cbaseline_data = nlib_coarse_baseline_solver(ubx_ecef_A, ubx_ecef_B) ;
+[baseline_data, x_data, P_data, z_data, H_data, phi_resid_data ] = nlib_L1_baseline_solver(settings, fout, measurments_A, measurments_B, mean_ecef_A, easy_ecef_A, easy_ecef_B ) ;
 
 figure(1) ;
-hold off ,
-plot((cbaseline_data(1,:)-cbaseline_data(1,1))/60, cbaseline_data(2,:)) ;
-hold on,
-plot((baseline_data(1,:)-baseline_data(1,1))/60, baseline_data(2,:),'r-') ;
+% hold off ,
+% plot((cbaseline_data(1,:)-cbaseline_data(1,1))/60, cbaseline_data(2,:)) ;
+% hold on,
+% plot((baseline_data(1,:)-baseline_data(1,1))/60, baseline_data(2,:),'r-') ;
 hold off, 
 plot(baseline_data(2:4,:).','LineWidth',2) ;
 set(gca,'FontSize',14) ;
@@ -62,6 +73,7 @@ ylabel('m') ;
 grid on ;
 title(['ECEF x-y-z: ',settings.fnameA,'-', settings.fnameB],'interpreter','none') ;
 xlabel('sec') ;
+legend('x','y','z') ;
 
 figure(2) ;
 hold off, plot(P_data(1:3,:).', 'LineWidth',2 ), 

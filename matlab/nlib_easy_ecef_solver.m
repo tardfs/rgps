@@ -6,13 +6,13 @@ N = length(measurments) ;
 easy_data = zeros(5,N) ;
 for idx1=1:N
     recv1_msr_set = measurments{idx1} ;
-    [ux,uy,uz,gdop] = easy_pvt_solver( recv1_msr_set) ;
-    easy_data(:,idx1) = [recv1_msr_set{1}.msrTow; ux;uy;uz; gdop(1)] ;
+    [ux,uy,uz,t_cor] = easy_pvt_solver( recv1_msr_set) ;
+    easy_data(:,idx1) = [recv1_msr_set{1}.msrTow; ux;uy;uz; t_cor] ;
 end
 
 rmpath(easyLib) ;
 
-function [ux,uy,uz,gdop, phi,lambda,h, el,az ] = easy_pvt_solver(measurments_queue)
+function [ux,uy,uz, time_corr_meters ] = easy_pvt_solver(measurments_queue)
     
 numSat = length(measurments_queue) ;
 obs = zeros(numSat,1) ;
@@ -29,6 +29,7 @@ end
 ux = easy_pos(1) ;
 uy = easy_pos(2) ;
 uz = easy_pos(3) ;
+time_corr_meters = easy_pos(4) ;
     
 
 

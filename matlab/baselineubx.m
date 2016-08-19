@@ -3,7 +3,7 @@ easyLib = getFullPath('..\\easy') ;
 
 clc ;
 fout = fopen('rltv_out.txt','w+t') ;
-recv1File = '..\data\RS_twin_15mm_01.mat' ;
+recv1File = '..\data\RS_twin_300mm_01.mat' ;
 recv2File = '..\data\RS_twin_15mm_02.mat' ;
 outFile = '..\data\rltv_out.mat' ;
 fprintf(repmat('\b',1,160)) ; fprintf('load receiver A data...') ;

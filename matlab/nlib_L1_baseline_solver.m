@@ -1,5 +1,5 @@
 % Baseline solver using L1 measurments only
-function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB, mean_ecef_A, easy_ecef_A)
+function [baseline_data, x_data, P_data, z_data, H_data, phi_resid_data] = nlib_L1_baseline_solver(settings, fout, measurmentsA, measurmentsB, mean_ecef_A, easy_ecef_A, easy_ecef_B )
 
 BL = 0 ; % number of baselines computed
 
@@ -29,26 +29,36 @@ L1_state = [] ;
 % end
 
 % get Tow vectors for A & B receivers
+recvA_Tow_v_raw = zeros(N,1) ;
 recvA_Tow_v = zeros(N,1) ;
 for n=1:N
     recvA_msr = measurmentsA{n} ;
     % get rcvA measurement time
-    recvA_Tow_v(n) = recvA_msr{1}.msrTow ;
+    recvA_Tow_v(n) = recvA_msr{1}.msrTow - easy_ecef_A(5,n)/settings.v_light ;
+    recvA_Tow_v_raw(n) = recvA_msr{1}.msrTow ;
 end
+recvB_Tow_v_raw = zeros(K,1) ;
 recvB_Tow_v = zeros(K,1) ;
 for k=1:K
     recvB_msr = measurmentsB{k} ;
-    % get rcvA measurement time
-    recvB_Tow_v(k) = recvB_msr{1}.msrTow ;
+    % get rcvB measurement time
+    recvB_Tow_v(k) = recvB_msr{1}.msrTow - easy_ecef_B(5,k)/settings.v_light ;
+    recvB_Tow_v_raw(k) = recvB_msr{1}.msrTow ;
 end
 
-% A & time synchronization
+% A & B time synchronization
 AB_n2k = zeros(N,1) ;
+AB_n2k_raw = zeros(N,1) ;
 AB_time_err = zeros(N,1) ;
+AB_time_err_raw = zeros(N,1) ;
 for n=1:N
     [time_dif,k] = min(abs(recvB_Tow_v-recvA_Tow_v(n))) ;
     AB_time_err(n) = time_dif ;
     AB_n2k(n) = k ;
+
+    [time_dif_raw, k] = min(abs(recvB_Tow_v_raw-recvA_Tow_v_raw(n))) ;
+    AB_time_err_raw(n) = time_dif_raw ;
+    AB_n2k_raw(n) = k ;
 end
 
 if settings.check_for_time_sync
@@ -58,7 +68,10 @@ if settings.check_for_time_sync
     set(gcf,'Name', 'A-B Time mismatch' ) ; 
     hold off, 
     %plot((recvA_Tow_v-recvA_Tow_v(1))/60, AB_time_err*settings.v_light,'LineWidth',2) ;
-    plot(AB_time_err*settings.v_light,'LineWidth',2) ;
+    %plot(AB_time_err*settings.v_light,'LineWidth',2) ;
+    plot(AB_time_err*1e3,'LineWidth',1) ;
+    hold on,
+    plot(AB_time_err_raw*1e3,'LineWidth',1) ;
     set(gca,'FontSize',14) ;
     grid on ;
     xlabel('Epoch #') ;
@@ -66,13 +79,20 @@ if settings.check_for_time_sync
     ylabel('ms') ;
     title(sprintf('A-B Time mismatch: %s', settings.fnameA ),'interpreter','none') ;
     
-    figure(21) ;
-    hold off , plot(recvA_Tow_v(2:end)-recvA_Tow_v(1:end-1), 'LineWidth',2) ;
-    hold on ,  plot(recvB_Tow_v(2:end)-recvB_Tow_v(1:end-1), 'r-','LineWidth',2) ;
-    title(sprintf('A & B Time step: %s', settings.fnameA ),'interpreter','none') ;
-    legend('A time step', 'B time step') ;
-    set(gca,'FontSize',14) ;
-    grid on ;
+     figure(21) ;
+     hold off,
+     plot(AB_n2k) ;
+     hold on,
+     plot(AB_n2k_raw, '-.') ;
+     grid on ;
+     
+%     figure(21) ;
+%     hold off , plot(recvA_Tow_v(2:end)-recvA_Tow_v(1:end-1), 'LineWidth',2) ;
+%     hold on ,  plot(recvB_Tow_v(2:end)-recvB_Tow_v(1:end-1), 'r-','LineWidth',2) ;
+%     title(sprintf('A & B Time step: %s', settings.fnameA ),'interpreter','none') ;
+%     legend('A time step', 'B time step') ;
+%     set(gca,'FontSize',14) ;
+%     grid on ;
     
     c=input('Proceed with relative coordinates: [Y/N]?','s') ;
     if isempty(c)
@@ -131,7 +151,7 @@ end
 for n=startIndex:endIndex    
     recvA_msr = measurmentsA{n} ;
     % get rcvA measurement time
-    TowA = recvA_msr{1}.msrTow ;
+    TowA = recvA_Tow_v(n) ; %recvA_msr{1}.msrTow ;
     % find corresponded measurment for recvB
     k = -1 ;
     if AB_time_err(n)<=settings.timeSyncTol
